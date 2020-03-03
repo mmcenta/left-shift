@@ -120,7 +120,7 @@ The new reward function is a weighted sum of four terms:
 \begin{itemize}
     \item \textbf{Empty}: this term is equal to the number of empty of tiles on the board. The only parameter of this term is the weight;
     \item \textbf{Merges:} this term is equal to the number of possible merges on the board. The only parameter of this term is the weight;
-    \item \textbf{Monotonicty:}: this term rewards rows or columns for having a (eventually partial) monotonic order. Each time it finds a correctly ordered neighbouring tiles, a reward of $B^x - S^x$ is given, with $B, S and x being the bigger logarithm, the smaller logarithm and the monotonicity exponent parameter, respectively. The maximum of both directions for each line is its value and the board's values is the sum over all rows and columns. It has two parameters: the weight and the exponent.
+    \item \textbf{Monotonicty:}: this term rewards rows or columns for having a (eventually partial) monotonic order. Each time it finds a correctly ordered neighbouring tiles, a reward of $B^x - S^x$ is given, with $B$, $S$ and $x$ being the bigger logarithm, the smaller logarithm and the monotonicity exponent parameter, respectively. The maximum of both directions for each line is its value and the board's values is the sum over all rows and columns. It has two parameters: the weight and the exponent.
     \item \textbf{Sum:} this term is the sum of the logarithm of all tiles elevated to a constant power, which is a parameter. It has two parameters: the weight and the exponent.
     
 We also add a negative penalty if the agents chooses an invalid action.
