@@ -27,7 +27,7 @@ def evaluate(model, num_episodes=100):
             # because we are using vectorized env
             obs, reward, done, extras = env.step(action)
 
-        #env.render()
+        env.render()
         all_episode_rewards.append(extras['score'])
 
     mean_episode_reward = np.mean(all_episode_rewards)
@@ -59,16 +59,7 @@ if __name__ == '__main__':
     env_id = "gym_text2048:Text2048-v0"
     env = gym.make(env_id, cnn=True)
     #env = DummyVecEnv([lambda: env, lambda: env, lambda: env])
-    #model_name = 'cnn_3l_nothing'
-    #model_name = 'cnn_3l_noduel'
-    #model_name = 'cnn_3l_nodouble'
-    #model_name = 'cnn_3l_prioritized'
-    #model_name = 'cnn_3l_default'
-    #model_name = 'cnn_3l_noduel_lr'
-    #model_name = 'cnn_3l_nodouble_lr'
-    #model_name = 'cnn_3l_all'
-    #model_name = 'cnn_3l_all_buffersize'
-    model_name = 'cnn_5l_double_prioritized_lr'
+    model_name = 'cnn_5l_dueling_prioritized_lr'
 
 
     if True and os.path.exists(f'{model_name}.zip'):
@@ -76,17 +67,8 @@ if __name__ == '__main__':
         dqn_model.set_env(env)
     else:
       pass
-      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, double_q=False, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False})
-      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False})
-      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, double_q=False, policy_kwargs={'cnn_extractor': my_cnn})
-      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, double_q=False, prioritized_replay=True, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False})
-      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, policy_kwargs={'cnn_extractor': my_cnn})
-      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, learning_rate=5e-5, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False})
-      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, learning_rate=5e-5, double_q=False, policy_kwargs={'cnn_extractor': my_cnn})
-      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, prioritized_replay=True, policy_kwargs={'cnn_extractor': my_cnn})
-      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, prioritized_replay=True, buffer_size=100000, policy_kwargs={'cnn_extractor': my_cnn})
-      dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, prioritized_replay=True, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False}, learning_rate=5e-5)
+      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, prioritized_replay=True, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False}, learning_rate=5e-5)
 
-    dqn_model.learn(total_timesteps=1000000, log_interval=10)
-    dqn_model.save(model_name)
-    mean_reward = evaluate(dqn_model, num_episodes=1000)
+    #dqn_model.learn(total_timesteps=1000000, log_interval=10)
+    #dqn_model.save(model_name)
+    mean_reward = evaluate(dqn_model, num_episodes=10)
