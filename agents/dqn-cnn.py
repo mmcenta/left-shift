@@ -2,6 +2,7 @@ import gym
 import numpy as np
 import os
 import tensorflow as tf
+import time
 
 from stable_baselines import DQN
 from stable_baselines.common.vec_env import DummyVecEnv
@@ -19,11 +20,13 @@ def evaluate(model, num_episodes=100):
     for _ in range(num_episodes):
         done = False
         obs = env.reset()
+        env.render()
         while not done:
             action, _states = model.predict(obs)
             obs, _, done, extras = env.step(action)
+            time.sleep(.1)
+            env.render()
 
-        env.render()
         all_episode_rewards.append(extras['score'])
 
     mean_episode_reward = np.mean(all_episode_rewards)
@@ -50,7 +53,7 @@ def my_cnn(image, **kwargs):
 if __name__ == '__main__':
 
     env_id = "text2048:Text2048-v0"
-    env = gym.make(env_id, cnn=True)
+    env = gym.make(env_id, cnn=True, seed=11)
     model_name = 'cnn_5l_dueling_prioritized_lr'
 
     if True and os.path.exists(f'{model_name}.zip'):

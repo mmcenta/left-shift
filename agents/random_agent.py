@@ -1,9 +1,9 @@
 import time
 import gym
 
-DELAY = 1
+DELAY = .1
 
-env = gym.make('gym_text2048:Text2048-v0')
+env = gym.make('text2048:Text2048-v0')
 observation = env.reset()
 env.render()
 for _ in range(1000):

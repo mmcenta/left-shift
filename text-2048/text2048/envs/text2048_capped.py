@@ -3,7 +3,7 @@ import logging
 from gym import spaces
 import numpy as np
 
-from gym_text2048.envs import Text2048Env
+from text2048.envs import Text2048Env
 
 
 logger = logging.getLogger(__name__)

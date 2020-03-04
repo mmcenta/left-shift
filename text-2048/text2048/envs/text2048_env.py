@@ -36,7 +36,7 @@ TILE_FORMAT = {
 class Text2048Env(gym.Env):
     metadata = {'render.modes': ['human', 'ansi']}
 
-    def __init__(self, size=4, one_hot=False, cnn=False):
+    def __init__(self, size=4, one_hot=False, cnn=False, seed=None):
         self.size = size
         self._one_hot = one_hot
         self._cnn = cnn
@@ -49,7 +49,7 @@ class Text2048Env(gym.Env):
         else:
             self.observation_space = spaces.Box(0, 16, [size,size], dtype=int)
 
-        self.seed()
+        self.seed(seed)
         self.reset()
 
     def seed(self, seed=None):

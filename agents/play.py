@@ -7,7 +7,7 @@ ACTION_LOOKUP = {
     'a': 3,
 }
 
-env = gym.make('gym_text2048:Text2048-v0')
+env = gym.make('text2048:Text2048-v0')
 print("Play with WASD\n")
 env.reset()
 env.render()

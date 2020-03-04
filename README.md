@@ -21,4 +21,22 @@ pip install stable-baselines
 pip install -e gym_text2048
 ```
 
-### 
+### Playing
+
+Interactive player for humans:
+```
+python agents/play.py
+```
+
+Random agent:
+```
+python agents/random_agent.py
+```
+
+DQN using a 5-layer CNN:
+```
+python agents/dqn-cnn.py
+```
+
+
+
