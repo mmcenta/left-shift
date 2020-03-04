@@ -46,18 +46,18 @@ def my_cnn(image, **kwargs):
     """
     activ = tf.nn.relu
     print("image", image)
-    layer_1 = activ(conv(image, 'c1', n_filters=256, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
-    print("layer_1", layer_1)
-    layer_2 = activ(conv(layer_1, 'c2', n_filters=256, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
-    print("layer_2", layer_2)
-    layer_3 = activ(conv(layer_2, 'c3', n_filters=256, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
-    print("layer_3", layer_3)
-    layer_lin = conv_to_fc(layer_3)
-    print("layer_lin", layer_lin)
+    layer_1 = activ(conv(image, 'c1', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_2 = activ(conv(layer_1, 'c2', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_3 = activ(conv(layer_2, 'c3', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_4 = activ(conv(layer_3, 'c4', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_5 = activ(conv(layer_4, 'c5', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_lin = conv_to_fc(layer_5)
     # return activ(linear(layer_lin, 'fc1', n_hidden=256, init_scale=np.sqrt(2)))
     return layer_lin
 
 if __name__ == '__main__':
+    tf.enable_eager_execution()
+
     env_id = "gym_text2048:Text2048-v0"
     env = gym.make(env_id, cnn=True)
     env = DummyVecEnv([lambda: env])
