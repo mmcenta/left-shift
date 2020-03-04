@@ -87,6 +87,6 @@ if __name__ == '__main__':
       #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, prioritized_replay=True, buffer_size=100000, policy_kwargs={'cnn_extractor': my_cnn})
       dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, prioritized_replay=True, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False}, learning_rate=5e-5)
 
-    dqn_model.learn(total_timesteps=100000, log_interval=10)
+    dqn_model.learn(total_timesteps=1000000, log_interval=10)
     dqn_model.save(model_name)
     mean_reward = evaluate(dqn_model, num_episodes=1000)
