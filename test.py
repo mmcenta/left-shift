@@ -49,7 +49,7 @@ def my_cnn(image, **kwargs):
     layer_3 = activ(conv(layer_2, 'c3', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
     layer_4 = activ(conv(layer_3, 'c4', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
     layer_5 = activ(conv(layer_4, 'c5', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
-    layer_lin = conv_to_fc(layer_3)
+    layer_lin = conv_to_fc(layer_5)
     # return activ(linear(layer_lin, 'fc1', n_hidden=256, init_scale=np.sqrt(2)))
     return layer_lin
 
