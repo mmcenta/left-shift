@@ -18,7 +18,6 @@ def evaluate(model, num_episodes=100):
     env = model.get_env()
     all_episode_rewards = []
     for _ in range(num_episodes):
-        episode_rewards = []
         done = False
         obs = env.reset()
         while not done:
@@ -26,11 +25,10 @@ def evaluate(model, num_episodes=100):
             action, _states = model.predict(obs)
             # here, action, rewards and dones are arrays
             # because we are using vectorized env
-            obs, reward, done, _ = env.step(action)
-            episode_rewards.append(reward)
+            obs, reward, done, extras = env.step(action)
 
-        env.render()
-        all_episode_rewards.append(sum(episode_rewards))
+        #env.render()
+        all_episode_rewards.append(extras['score'])
 
     mean_episode_reward = np.mean(all_episode_rewards)
     print("Mean reward:", mean_episode_reward, "Num episodes:", num_episodes)
@@ -51,7 +49,7 @@ def my_cnn(image, **kwargs):
     layer_3 = activ(conv(layer_2, 'c3', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
     layer_4 = activ(conv(layer_3, 'c4', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
     layer_5 = activ(conv(layer_4, 'c5', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
-    layer_lin = conv_to_fc(layer_5)
+    layer_lin = conv_to_fc(layer_3)
     # return activ(linear(layer_lin, 'fc1', n_hidden=256, init_scale=np.sqrt(2)))
     return layer_lin
 
@@ -60,15 +58,35 @@ if __name__ == '__main__':
 
     env_id = "gym_text2048:Text2048-v0"
     env = gym.make(env_id, cnn=True)
-    env = DummyVecEnv([lambda: env])
-    model_name = 'dqn_model_mlp_negative_1p'
+    #env = DummyVecEnv([lambda: env, lambda: env, lambda: env])
+    #model_name = 'cnn_3l_nothing'
+    #model_name = 'cnn_3l_noduel'
+    #model_name = 'cnn_3l_nodouble'
+    #model_name = 'cnn_3l_prioritized'
+    #model_name = 'cnn_3l_default'
+    #model_name = 'cnn_3l_noduel_lr'
+    #model_name = 'cnn_3l_nodouble_lr'
+    #model_name = 'cnn_3l_all'
+    #model_name = 'cnn_3l_all_buffersize'
+    model_name = 'cnn_5l_double_prioritized_lr'
 
-    if False and os.path.exists(f'{model_name}.zip'):
+
+    if True and os.path.exists(f'{model_name}.zip'):
         dqn_model = DQN.load(model_name)
         dqn_model.set_env(env)
     else:
-        dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, double_q=False, policy_kwargs={'cnn_extractor': my_cnn})
+      pass
+      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, double_q=False, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False})
+      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False})
+      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, double_q=False, policy_kwargs={'cnn_extractor': my_cnn})
+      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, double_q=False, prioritized_replay=True, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False})
+      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, policy_kwargs={'cnn_extractor': my_cnn})
+      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, learning_rate=5e-5, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False})
+      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, learning_rate=5e-5, double_q=False, policy_kwargs={'cnn_extractor': my_cnn})
+      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, prioritized_replay=True, policy_kwargs={'cnn_extractor': my_cnn})
+      #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, prioritized_replay=True, buffer_size=100000, policy_kwargs={'cnn_extractor': my_cnn})
+      dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, prioritized_replay=True, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False}, learning_rate=5e-5)
 
     dqn_model.learn(total_timesteps=100000, log_interval=10)
-    # dqn_model.save(model_name)
-    mean_reward = evaluate(dqn_model, num_episodes=10)
+    dqn_model.save(model_name)
+    mean_reward = evaluate(dqn_model, num_episodes=1000)
