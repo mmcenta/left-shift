@@ -1,4 +1,4 @@
-# gym-text2048
+# text2048
 
 2048 as an OpenAI Gym environment with a simple text display.
 
@@ -50,6 +50,6 @@ This repository includes the following examples under the directory `/examples`:
 Installation can be done locally using `pip`, just download the repository's files and execute the following commands:
 
 ```bash
-cd gym-text2048
+cd text2048
 pip install -e .
 ```
