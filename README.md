@@ -1,4 +1,5 @@
 ## Dependencies
+- Python 3.7.x (other versions probably won't work)
 - [OpenAI Gym](https://github.com/openai/gym)
 - [TensorFlow 1.x](https://www.tensorflow.org/install/pip) (2.x does not work)
 - [Stable Baselines](https://github.com/hill-a/stable-baselines)
@@ -6,6 +7,12 @@
 ## Running
 
 We suggest creating a virtual environment before installing the packages
+
+### Virtual environment
+```
+python3 -m venv venv
+source venv/bin/activate
+```
 
 ### Installing dependencies
 
