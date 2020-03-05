@@ -58,7 +58,6 @@ if __name__ == '__main__':
 
     env_id = "gym_text2048:Text2048-v0"
     env = gym.make(env_id, cnn=True)
-    #env = DummyVecEnv([lambda: env, lambda: env, lambda: env])
     model_name = 'cnn_5l_dueling_prioritized_lr'
 
 
@@ -69,6 +68,6 @@ if __name__ == '__main__':
       pass
       #dqn_model = DQN('CnnPolicy', env, verbose=1, exploration_final_eps=.1, prioritized_replay=True, policy_kwargs={'cnn_extractor': my_cnn, 'dueling': False}, learning_rate=5e-5)
 
-    #dqn_model.learn(total_timesteps=1000000, log_interval=10)
-    #dqn_model.save(model_name)
+    dqn_model.learn(total_timesteps=3000000, log_interval=10)
+    dqn_model.save(f'{model_name}_3M')
     mean_reward = evaluate(dqn_model, num_episodes=10)
