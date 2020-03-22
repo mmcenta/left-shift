@@ -25,7 +25,7 @@ pip install stable-baselines
 ### Installing gym environment
 
 ```
-pip install -e text2048
+pip install -e gym-text2048
 ```
 
 ### Playing
