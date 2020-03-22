@@ -56,7 +56,7 @@ def my_cnn(image, **kwargs):
 
 if __name__ == '__main__':
 
-    env_id = "text2048:Text2048-v0"
+    env_id = "gym_text2048:Text2048-v0"
     env = gym.make(env_id, cnn=True, seed=11)
     model_name = 'models/cnn_5l_dueling_prioritized_lr'
 

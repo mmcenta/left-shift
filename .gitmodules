@@ -1,3 +1,3 @@
-[submodule "text2048"]
-	path = text2048
-	url = https://github.com/mmcenta/gym-text2048.git
+[submodule "gym-text2048"]
+	path = gym-text2048
+	url = git@github.com:mmcenta/gym-text2048.git
