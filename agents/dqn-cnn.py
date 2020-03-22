@@ -3,6 +3,7 @@ import numpy as np
 import os
 import tensorflow as tf
 import time
+import random
 
 from stable_baselines import DQN
 from stable_baselines.common.vec_env import DummyVecEnv
@@ -23,8 +24,11 @@ def evaluate(model, num_episodes=100):
         env.render()
         while not done:
             action, _states = model.predict(obs)
-            obs, _, done, extras = env.step(action)
-            time.sleep(.1)
+            obs, reward, done, extras = env.step(action)
+            if reward < 0:
+                action = random.sample(range(4),1)[0]
+                obs, reward, done, extras = env.step(action)
+            # time.sleep(.1)
             env.render()
 
         all_episode_rewards.append(extras['score'])
@@ -54,7 +58,7 @@ if __name__ == '__main__':
 
     env_id = "text2048:Text2048-v0"
     env = gym.make(env_id, cnn=True, seed=11)
-    model_name = 'cnn_5l_dueling_prioritized_lr'
+    model_name = 'models/cnn_5l_dueling_prioritized_lr'
 
     if True and os.path.exists(f'{model_name}.zip'):
         dqn_model = DQN.load(model_name)

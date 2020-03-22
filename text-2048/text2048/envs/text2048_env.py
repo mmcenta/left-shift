@@ -115,6 +115,11 @@ class Text2048Env(gym.Env):
         view = np.rot90(self.board, k=action)
         changed = self._compress(view)
         action_score = self._merge(view)
+
+        self.last_action = action
+        self.last_action_score = action_score
+        self.score += action_score
+
         if changed or action_score > 0:
             self._compress(view)
             self._add_random_tile()
@@ -122,9 +127,6 @@ class Text2048Env(gym.Env):
             self._invalid_count += 1
             return self._get_board(), -32, self._invalid_count >= 10, {'score': self.score}
 
-        self.last_action = action
-        self.last_action_score = action_score
-        self.score += action_score
 
         return self._get_board(), self._get_reward(), self._is_done(), {'score': self.score}
 
