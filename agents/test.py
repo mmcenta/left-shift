@@ -50,7 +50,7 @@ def evaluate(model, env_id, num_episodes=100):
     :param num_episodes: (int) number of episodes to evaluate it
     :return: (float) Mean reward for the last num_episodes
     """
-    env = gym.make(env, cnn=True)
+    env = gym.make(env_id, cnn=True)
     all_episode_rewards = []
     max_achieved = np.zeros(15, dtype=int)
     for _ in range(num_episodes):
