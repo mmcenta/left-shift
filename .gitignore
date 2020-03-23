@@ -133,3 +133,7 @@ dmypy.json
 
 # Vendor folder
 vendor/
+
+# Ignore logs
+logs/
+tb-logs/
