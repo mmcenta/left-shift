@@ -1,8 +1,8 @@
 import argparse
+import copy
 import os
 import random
 import time
-import yaml
 
 import gym
 import numpy as np
@@ -12,6 +12,7 @@ from stable_baselines.common.callbacks import CheckpointCallback, EvalCallback
 from stable_baselines.common.vec_env import DummyVecEnv
 from stable_baselines.deepq.policies import FeedForwardPolicy
 import tensorflow as tf
+import yaml
 
 
 def cnn_extractor(image, **kwargs):
@@ -41,7 +42,6 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     :return: (BaseRLModel object) The corresponding model.
     """
     feature_extraction = "cnn" if hyperparams['cnn'] else "mlp"
-    layer_norm = hyperparams['ln']
     class CustomPolicy(FeedForwardPolicy):
         def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch,
                      reuse=False, obs_phs=None, dueling=True, **_kwargs):
@@ -50,22 +50,24 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
                                                cnn_extractor=cnn_extractor,
                                                feature_extraction=feature_extraction,
                                                obs_phs=obs_phs, dueling=dueling,
-                                               layer_norm=layer_norm, **_kwargs)
+                                               layer_norm=hyperparams['ln'], **_kwargs)
 
-    # Delete hyperparameters not supported by the DQN constructor
+    # Prepare kwargs for the constructor
     policy_kwargs = dict(layers=hyperparams['layers'])
-    del hyperparams['layers']
-    del hyperparams['cnn']
-    del hyperparams['ln']
+    model_kwargs = copy.deepcopy(hyperparams)
+    del model_kwargs['layers']
+    del model_kwargs['cnn']
+    del model_kwargs['ln']
 
-    model = DQN(CustomPolicy, env,
+    model = DQN(CustomPolicy,
+                DummyVecEnv([lambda: gym.make(env, cnn=hyperparams['cnn'])]),
                 policy_kwargs=policy_kwargs,
                 prioritized_replay=True,
-                double_q=True,
+                double_q=False,
                 seed=seed,
                 tensorboard_log=tensorboard_log,
                 verbose=verbose,
-                **hyperparams)
+                **model_kwargs)
 
     return model
 
@@ -117,7 +119,7 @@ def train(model_name, hyperparams,
         if verbose > 0:
             print("Creating evaluation environment")
 
-        env = gym.make(env)
+        env = gym.make(env, cnn=hyperparams['cnn'])
         env.seed(seed)
         eval_callback = EvalCallback(env, best_model_save_path=save_dir,
                                     n_eval_episodes=eval_episodes, eval_freq=eval_freq,
@@ -135,7 +137,7 @@ def train(model_name, hyperparams,
 
     if verbose > 0:
         print('Saving final model.')
-    model.save(os.path.join(save_dir))
+    model.save(os.path.join(save_dir, model_name))
 
 
 if __name__ == '__main__':
