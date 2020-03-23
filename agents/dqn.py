@@ -29,11 +29,15 @@ def cnn_extractor(scaled_images, **kwargs):
     return activ(linear(layer_3, 'fc1', n_hidden=256, init_scale=np.sqrt(2)))
 
 
-def create_model(hyperparams, tensorboard_log='', verbose=-1, seed=0, env="gym_text2048:Text2048-v0"):
+def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log='', verbose=-1, seed=0):
     """
-    Create a DQN model from parameters. The models always uses the Prioritized
+    Create a DQN model from parameters. The model always uses the Prioritized
     Replay and Double-Q Learning extensions.
-    :param params: (dict) A dict containing the model hyperparameters.
+    :param hyperparams: (dict) A dict containing the model hyperparameters.
+    :param env: (str) Environment id.
+    :param tensorboard_log: (str) The Tensorboard log directory.
+    :param verbose: (int) Verbose mode (0: no output, 1: INFO).
+    :param seed: (int) Random generator seed.
     :return: (BaseRLModel object) The corresponding model.
     """
     feature_extraction = "cnn" if hyperparams['cnn'] else "mlp"
@@ -68,12 +72,28 @@ def train(model_name, hyperparams,
           verbose=-1,
           seed=0,
           n_timesteps=1e7,
-          log_interval=-1,
+          log_interval=1e3,
           log_dir='logs',
           save_freq=1e4,
           save_dir='models',
           eval_freq=1e4,
           eval_episodes=5):
+    """
+    Create (or load) and train a DQN model. The model always uses the Prioritized
+    Replay and Double-Q Learning extensions.
+    :param hyperparams: (dict) A dict containing the model hyperparameters.
+    :param env: (str) Environment id.
+    :param tensorboard_log: (str) The Tensorboard log directory.
+    :param verbose: (int) Verbose mode (0: no output, 1: INFO).
+    :param seed: (int) Random generator seed.
+    :param n_timesteps: (int) Number of timesteps.
+    :param log_interval: (int) Log interval.
+    :param log_dir: (str) Log directory.
+    :param save_freq: (int) Save the model every save_freq steps (if negative, no checkpoint).
+    :param save_dir: (str) Save directory.
+    :param eval_freq: (int) Evaluate the agent every n steps (if negative, no evaluation).
+    :param eval_episodes: (int) Number of episodes to use for evaluation.
+    """
     if verbose > 0:
         print("Creating model.")
     if os.path.exists(os.path.join(save_dir, f'{model_name}.zip')):
@@ -117,7 +137,7 @@ def train(model_name, hyperparams,
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, default="gym_text2048:Text2048-v0",
-                        help='Train environment id.')
+                        help='Environment id.')
     parser.add_argument('-tb', '--tensorboard-log', type=str, default='',
                         help='Tensorboard log directory.')
     parser.add_argument('--hf', '--hyperparams-file', type=str, default='hyperparams/default.yaml',
@@ -125,23 +145,23 @@ if __name__ == '__main__':
     parser.add_argument('-mn', '--model-name', type=str, default='',
                         help='Model name (if it already exists, training will be resumed).')
     parser.add_argument('-n', '--n-timesteps', type=int, default=1e7,
-                        help='Number of timesteps')
+                        help='Number of timesteps.')
     parser.add_argument('--log-interval', type=int, default=1e3,
                         help='Log interval.')
     parser.add_argument('--eval-freq', type=int, default=1e4,
-                        help='Evaluate the agent every n steps (if negative, no evaluation)')
+                        help='Evaluate the agent every n steps (if negative, no evaluation).')
     parser.add_argument('--eval-episodes', type=int, default=5,
-                        help='Number of episodes to use for evaluation')
+                        help='Number of episodes to use for evaluation.')
     parser.add_argument('--save-freq', type=int, default=-1,
-                        help='Save the model every n steps (if negative, no checkpoint)')
+                        help='Save the model every n steps (if negative, no checkpoint).')
     parser.add_argument('-sd', '--save-directory', type=str, default='models',
                         help='Save directory.')
     parser.add_argument('-ld', '--log-directory', type=str, default='logs',
                         help='Log directory.')
     parser.add_argument('--seed', type=int, default=0,
-                        help='Random generator seed')
+                        help='Random generator seed.')
     parser.add_argument('--verbose', type=int, default=1,
-                        help='Verbose mode (0: no output, 1: INFO)')
+                        help='Verbose mode (0: no output, 1: INFO).')
     args = parser.parse_args()
 
     # Load hyperparameters
