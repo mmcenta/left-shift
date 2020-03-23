@@ -14,6 +14,68 @@ from stable_baselines.deepq.policies import FeedForwardPolicy
 import tensorflow as tf
 import yaml
 
+def extract_max_tile(obs):
+    max_val = 0
+    for i in range(4):
+        for j in range(4):
+            max_val = max(max_val, np.argmax(obs[i,j]))
+    return max_val
+
+def print_histogram(hist):
+    print('Histogram of maximum tile achieved:')
+    for i in range(15):
+        if hist[i] > 0:
+            print(f'{2**i}: {hist[i]}')
+
+
+histogram = np.zeros(15, dtype=int)
+max_val = 0
+
+def custom_callback(_locals, _globals):
+    '''
+    Custom callback
+    :param _locals: (dict)
+    :param _globals: (dict)
+    '''
+    timestep = _locals['self'].num_timesteps
+    global histogram
+    global max_val
+    if _locals['reset']:
+        histogram[max_val] += 1
+    max_val = extract_max_tile(_locals['obs'])
+    if timestep % 10000 == 0 :
+        print_histogram(histogram)
+
+
+def evaluate(model, num_episodes=100):
+    """
+    Evaluate a RL agent
+    :param model: (BaseRLModel object) the RL Agent
+    :param num_episodes: (int) number of episodes to evaluate it
+    :return: (float) Mean reward for the last num_episodes
+    """
+    env = model.get_env()
+    all_episode_rewards = []
+    max_achieved = np.zeros(15, dtype=int)
+    for _ in range(num_episodes):
+        done = False
+        obs = env.reset()
+        #env.render()
+        while not done:
+            action, _states = model.predict(obs)
+            obs, reward, done, extras = env.step(action)
+            if reward < 0:
+                action = random.sample(range(4),1)[0]
+                obs, reward, done, extras = env.step(action)
+            # time.sleep(.1)
+            env.render()
+        max_achieved[extract_max_tile(obs)] += 1
+        all_episode_rewards.append(extras['score'])
+
+    mean_episode_reward = np.mean(all_episode_rewards)
+    print("Reward: ", mean_episode_reward)
+    print_histogram(max_achieved)
+
 
 def cnn_extractor(image, **kwargs):
     """
@@ -63,7 +125,7 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
                 DummyVecEnv([lambda: gym.make(env, cnn=hyperparams['cnn'])]),
                 policy_kwargs=policy_kwargs,
                 prioritized_replay=True,
-                double_q=False,
+                double_q=True,
                 seed=seed,
                 tensorboard_log=tensorboard_log,
                 verbose=verbose,
@@ -135,6 +197,7 @@ def train(model_name, hyperparams,
     except KeyboardInterrupt:
         pass
 
+    evaluate(model)
     if verbose > 0:
         print('Saving final model.')
     model.save(os.path.join(save_dir, model_name))
@@ -152,13 +215,13 @@ if __name__ == '__main__':
                         help='Model name (if it already exists, training will be resumed).')
     parser.add_argument('--n-timesteps', '-n', type=int, default=1e7,
                         help='Number of timesteps.')
-    parser.add_argument('--log-interval', type=int, default=1e3,
+    parser.add_argument('--log-interval', type=int, default=1e4,
                         help='Log interval.')
     parser.add_argument('--eval-freq', type=int, default=1e4,
                         help='Evaluate the agent every n steps (if negative, no evaluation).')
     parser.add_argument('--eval-episodes', type=int, default=5,
                         help='Number of episodes to use for evaluation.')
-    parser.add_argument('--save-freq', type=int, default=-1,
+    parser.add_argument('--save-freq', type=int, default=1e5,
                         help='Save the model every n steps (if negative, no checkpoint).')
     parser.add_argument('--save-directory', '-sd', type=str, default='models',
                         help='Save directory.')
