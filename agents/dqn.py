@@ -14,15 +14,15 @@ from stable_baselines.deepq.policies import FeedForwardPolicy
 import tensorflow as tf
 
 
-def cnn_extractor(scaled_images, **kwargs):
+def cnn_extractor(image, **kwargs):
     """
     CNN feature extrator for 2048.
-    :param scaled_images: (TensorFlow Tensor) Image input placeholder.
+    :param image: (TensorFlow Tensor) Image input placeholder.
     :param kwargs: (dict) Extra keywords parameters for the convolutional layers of the CNN.
     :return: (TensorFlow Tensor) The CNN output layer.
     """
     activ = tf.nn.relu
-    layer_1 = activ(conv(scaled_images, 'c1', n_filters=64, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_1 = activ(conv(image, 'c1', n_filters=64, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
     layer_2 = activ(conv(layer_1, 'c2', n_filters=128, filter_size=2, stride=2, pad='VALID', init_scale=np.sqrt(2), **kwargs))
     layer_3 = activ(conv(layer_2, 'c3', n_filters=128, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
     layer_3 = conv_to_fc(layer_3)
@@ -41,23 +41,27 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     :return: (BaseRLModel object) The corresponding model.
     """
     feature_extraction = "cnn" if hyperparams['cnn'] else "mlp"
+    layer_norm = hyperparams['ln']
     class CustomPolicy(FeedForwardPolicy):
         def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch,
                      reuse=False, obs_phs=None, dueling=True, **_kwargs):
             super(CustomPolicy, self).__init__(sess, ob_space, ac_space, n_env,
                                                n_steps, n_batch, reuse,
+                                               cnn_extractor=cnn_extractor,
                                                feature_extraction=feature_extraction,
                                                obs_phs=obs_phs, dueling=dueling,
-                                               layer_norm=hyperparams['ln'], **_kwargs)
+                                               layer_norm=layer_norm, **_kwargs)
 
     # Delete hyperparameters not supported by the DQN constructor
+    policy_kwargs = dict(layers=hyperparams['layers'])
+    del hyperparams['layers']
     del hyperparams['cnn']
     del hyperparams['ln']
 
     model = DQN(CustomPolicy, env,
-                policy_kwargs=hyperparams['layers'],
+                policy_kwargs=policy_kwargs,
                 prioritized_replay=True,
-                dueling=True,
+                double_q=True,
                 seed=seed,
                 tensorboard_log=tensorboard_log,
                 verbose=verbose,
@@ -138,13 +142,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--env', type=str, default="gym_text2048:Text2048-v0",
                         help='Environment id.')
-    parser.add_argument('-tb', '--tensorboard-log', type=str, default='',
+    parser.add_argument('--tensorboard-log', '-tb', type=str, default='',
                         help='Tensorboard log directory.')
-    parser.add_argument('--hf', '--hyperparams-file', type=str, default='hyperparams/default.yaml',
+    parser.add_argument('--hyperparams-file', '-hf', type=str, default='hyperparams/dqn.yaml',
                         help='Hyperparameter YAML file location.')
-    parser.add_argument('-mn', '--model-name', type=str, default='',
+    parser.add_argument('--model-name', '-mn', type=str, default='',
                         help='Model name (if it already exists, training will be resumed).')
-    parser.add_argument('-n', '--n-timesteps', type=int, default=1e7,
+    parser.add_argument('--n-timesteps', '-n', type=int, default=1e7,
                         help='Number of timesteps.')
     parser.add_argument('--log-interval', type=int, default=1e3,
                         help='Log interval.')
@@ -154,9 +158,9 @@ if __name__ == '__main__':
                         help='Number of episodes to use for evaluation.')
     parser.add_argument('--save-freq', type=int, default=-1,
                         help='Save the model every n steps (if negative, no checkpoint).')
-    parser.add_argument('-sd', '--save-directory', type=str, default='models',
+    parser.add_argument('--save-directory', '-sd', type=str, default='models',
                         help='Save directory.')
-    parser.add_argument('-ld', '--log-directory', type=str, default='logs',
+    parser.add_argument('--log-directory', '-ld', type=str, default='logs',
                         help='Log directory.')
     parser.add_argument('--seed', type=int, default=0,
                         help='Random generator seed.')
@@ -165,7 +169,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # Load hyperparameters
-    with open(args.hyperparams, 'r') as f:
+    if args.verbose > 0:
+        print("Loading hyperparameters from {:}.".format(args.hyperparams_file))
+    with open(args.hyperparams_file, 'r') as f:
         hyperparams = yaml.safe_load(f)
 
     # Gather train kwargs
