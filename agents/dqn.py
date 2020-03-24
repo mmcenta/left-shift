@@ -80,7 +80,7 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
                      reuse=False, obs_phs=None, dueling=True, **_kwargs):
             super(CustomPolicy, self).__init__(sess, ob_space, ac_space, n_env,
                                                n_steps, n_batch, reuse,
-                                               cnn_extractor=cnn_extractor,
+                                               cnn_extractor=my_cnn,
                                                feature_extraction=feature_extraction,
                                                obs_phs=obs_phs, dueling=dueling,
                                                layer_norm=hyperparams['ln'], **_kwargs)
@@ -116,7 +116,8 @@ def train(model_name, hyperparams,
           save_freq=1e4,
           save_dir='models',
           eval_freq=1e4,
-          eval_episodes=5):
+          eval_episodes=5,
+          env_kwargs={}):
     """
     Create (or load) and train a DQN model. The model always uses the Prioritized
     Replay and Double-Q Learning extensions.
@@ -152,7 +153,7 @@ def train(model_name, hyperparams,
         if verbose > 0:
             print("Creating evaluation environment")
 
-        env = gym.make(env, cnn=hyperparams['cnn'])
+        env = gym.make(env, **env_kwargs)
         env.seed(seed)
         eval_callback = EvalCallback(env, best_model_save_path=save_dir,
                                     n_eval_episodes=eval_episodes, eval_freq=eval_freq,
@@ -202,6 +203,8 @@ if __name__ == '__main__':
                         help='Random generator seed.')
     parser.add_argument('--verbose', type=int, default=1,
                         help='Verbose mode (0: no output, 1: INFO).')
+    parser.add_argument('--no-one-hot', dest='one_hot', action='store_false',
+                        help='Disable one-hot encoding')
     args = parser.parse_args()
 
     # Load hyperparameters
@@ -222,7 +225,8 @@ if __name__ == '__main__':
         'save_freq': args.save_freq,
         'save_dir': args.save_directory,
         'eval_freq': args.eval_freq,
-        'eval_episodes': args.eval_episodes
+        'eval_episodes': args.eval_episodes,
+        'env_kwargs': {'one_hot': args.one_hot}
     }
 
     train(args.model_name, hyperparams, **train_kwargs)
