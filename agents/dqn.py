@@ -101,10 +101,26 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
 
     return model
 
+def get_model(model_name, hyperparams, env, verbose=1, seed=0, env_kwargs={}, tensorboard_log=''):
+    if verbose > 0:
+        print("Creating model.")
+    save_dir = 'models'
+    model_path = os.path.join(save_dir, f'{model_name}.zip')
+    if model_name and os.path.exists(model_path):
+        model = DQN.load(model_path)
+        env = gym.make(env, **env_kwargs)
+        model.set_env(env)
+        return model
+    else:
+        return create_model(hyperparams,
+                             tensorboard_log=tensorboard_log,
+                             verbose=verbose,
+                             seed=seed,
+                             env_kwargs=env_kwargs)
 
-def train(model_name, hyperparams,
+
+def train(model, model_name, hyperparams,
           env="gym_text2048:Text2048-v0",
-          tensorboard_log='',
           verbose=-1,
           seed=0,
           n_timesteps=1e7,
@@ -132,16 +148,6 @@ def train(model_name, hyperparams,
     :param eval_freq: (int) Evaluate the agent every n steps (if negative, no evaluation).
     :param eval_episodes: (int) Number of episodes to use for evaluation.
     """
-    if verbose > 0:
-        print("Creating model.")
-    if os.path.exists(os.path.join(save_dir, f'{model_name}.zip')):
-        model = DQN.load(model_name)
-    else:
-        model = create_model(hyperparams,
-                             tensorboard_log=tensorboard_log,
-                             verbose=verbose,
-                             seed=seed,
-                             env_kwargs=env_kwargs)
 
     callbacks = []
     if save_freq > 0:
@@ -172,7 +178,6 @@ def train(model_name, hyperparams,
     except KeyboardInterrupt:
         pass
 
-    evaluate(model)
     if verbose > 0:
         print('Saving final model.')
     model.save(os.path.join(save_dir, model_name))
@@ -208,6 +213,10 @@ if __name__ == '__main__':
                         help='Verbose mode (0: no output, 1: INFO).')
     parser.add_argument('--no-one-hot', dest='one_hot', action='store_false',
                         help='Disable one-hot encoding')
+    parser.add_argument('--no-train', dest='train', action='store_false',
+                        help='Disable training')
+    parser.add_argument('--no-eval', dest='eval', action='store_false',
+                        help='Disable evaluation')
     args = parser.parse_args()
 
     # Load hyperparameters
@@ -219,7 +228,6 @@ if __name__ == '__main__':
     # Gather train kwargs
     train_kwargs = {
         'env': args.env,
-        'tensorboard_log': args.tensorboard_log,
         'verbose': args.verbose,
         'seed': args.seed,
         'n_timesteps': args.n_timesteps,
@@ -229,7 +237,11 @@ if __name__ == '__main__':
         'save_dir': args.save_directory,
         'eval_freq': args.eval_freq,
         'eval_episodes': args.eval_episodes,
-        'env_kwargs': {'one_hot': args.one_hot}
     }
+    env_kwargs = {'one_hot': args.one_hot}
+    model = get_model(args.model_name, hyperparams, args.env, verbose=args.verbose, seed=args.seed, env_kwargs=env_kwargs, tensorboard_log = args.tensorboard_log)
 
-    train(args.model_name, hyperparams, **train_kwargs)
+    if args.train:
+        train(model, args.model_name, hyperparams, **train_kwargs)
+    if args.eval:
+        evaluate(model)
