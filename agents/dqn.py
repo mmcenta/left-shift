@@ -184,15 +184,15 @@ if __name__ == '__main__':
                         help='Hyperparameter YAML file location.')
     parser.add_argument('--model-name', '-mn', type=str, default='',
                         help='Model name (if it already exists, training will be resumed).')
-    parser.add_argument('--n-timesteps', '-n', type=int, default=1e7,
+    parser.add_argument('--n-timesteps', '-n', type=int, default=int(1e7),
                         help='Number of timesteps.')
-    parser.add_argument('--log-interval', type=int, default=1e4,
+    parser.add_argument('--log-interval', type=int, default=int(1e4),
                         help='Log interval.')
-    parser.add_argument('--eval-freq', type=int, default=1e4,
+    parser.add_argument('--eval-freq', type=int, default=int(1e4),
                         help='Evaluate the agent every n steps (if negative, no evaluation).')
     parser.add_argument('--eval-episodes', type=int, default=5,
                         help='Number of episodes to use for evaluation.')
-    parser.add_argument('--save-freq', type=int, default=1e5,
+    parser.add_argument('--save-freq', type=int, default=int(1e5),
                         help='Save the model every n steps (if negative, no checkpoint).')
     parser.add_argument('--save-directory', '-sd', type=str, default='models',
                         help='Save directory.')
