@@ -56,11 +56,12 @@ def cnn_extractor(image, **kwargs):
     :return: (TensorFlow Tensor) The CNN output layer.
     """
     activ = tf.nn.relu
-    layer_1 = activ(conv(image, 'c1', n_filters=64, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
-    layer_2 = activ(conv(layer_1, 'c2', n_filters=128, filter_size=2, stride=2, pad='VALID', init_scale=np.sqrt(2), **kwargs))
-    layer_3 = activ(conv(layer_2, 'c3', n_filters=128, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
-    layer_3 = conv_to_fc(layer_3)
-    return activ(linear(layer_3, 'fc1', n_hidden=256, init_scale=np.sqrt(2)))
+    layer_1 = activ(conv(image, 'c1', n_filters=128, filter_size=4, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_2 = activ(conv(layer_1, 'c2', n_filters=128, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_3 = activ(conv(layer_2, 'c3', n_filters=256, filter_size=2, stride=2, pad='VALID', init_scale=np.sqrt(2), **kwargs))
+    layer_4 = activ(conv(layer_2, 'c3', n_filters=256, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_lin = conv_to_fc(layer_3)
+    return layer_lin
 
 
 def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log='', verbose=-1, seed=0):
