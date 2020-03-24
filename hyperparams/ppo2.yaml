@@ -1,0 +1,11 @@
+layers: [512, 512, 512]
+n_steps: 128
+noptepochs: 4
+nminibatches: 4
+learning_rate: 2.5e-4
+cliprange: 0.1
+vf_coef: 0.5
+ent_coef: 0.01
+cliprange_vf: -1
+cnn: True
+ln: False

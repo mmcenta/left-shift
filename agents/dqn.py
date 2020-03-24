@@ -6,11 +6,13 @@ import time
 
 import gym
 import numpy as np
-from stable_baselines import DQN
+from stable_baselines import DQN, PPO2
 from stable_baselines.a2c.utils import conv, conv_to_fc, linear
 from stable_baselines.common.callbacks import CheckpointCallback, EvalCallback
 from stable_baselines.common.vec_env import DummyVecEnv
-from stable_baselines.deepq.policies import FeedForwardPolicy
+from stable_baselines.common import make_vec_env
+# from stable_baselines.deepq.policies import FeedForwardPolicy
+from stable_baselines.common.policies import MlpPolicy
 import tensorflow as tf
 import yaml
 
@@ -114,15 +116,15 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
         _extractor = my_cnn
     elif extractor == '5l_4':
         _extractor = my_cnn_4
-    class CustomPolicy(FeedForwardPolicy):
-        def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch,
-                     reuse=False, obs_phs=None, dueling=True, **_kwargs):
-            super(CustomPolicy, self).__init__(sess, ob_space, ac_space, n_env,
-                                               n_steps, n_batch, reuse,
-                                               cnn_extractor=_extractor,
-                                               feature_extraction=feature_extraction,
-                                               obs_phs=obs_phs, dueling=dueling,
-                                               layer_norm=hyperparams['ln'], **_kwargs)
+    # class CustomPolicy(FeedForwardPolicy):
+    #     def __init__(self, sess, ob_space, ac_space, n_envs, n_steps, n_batch,
+    #                  reuse=False, obs_phs=None, dueling=True, **_kwargs):
+    #         super(CustomPolicy, self).__init__(sess, ob_space, ac_space, n_envs,
+    #                                            n_steps, n_batch, reuse,
+    #                                            cnn_extractor=_extractor,
+    #                                            feature_extraction=feature_extraction,
+    #                                            obs_phs=obs_phs, dueling=dueling,
+    #                                            layer_norm=hyperparams['ln'], **_kwargs)
 
     # Prepare kwargs for the constructor
     policy_kwargs = dict(layers=hyperparams['layers'])
@@ -131,11 +133,9 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     del model_kwargs['cnn']
     del model_kwargs['ln']
 
-    model = DQN(CustomPolicy,
-                DummyVecEnv([lambda: gym.make(env, **env_kwargs)]),
+    model = PPO2(MlpPolicy,
+                make_vec_env(env, n_envs=8, env_kwargs=env_kwargs),
                 policy_kwargs=policy_kwargs,
-                prioritized_replay=True,
-                double_q=True,
                 seed=seed,
                 tensorboard_log=tensorboard_log,
                 verbose=verbose,
@@ -222,7 +222,7 @@ if __name__ == '__main__':
                         help='Environment id.')
     parser.add_argument('--tensorboard-log', '-tb', type=str, default='',
                         help='Tensorboard log directory.')
-    parser.add_argument('--hyperparams-file', '-hf', type=str, default='hyperparams/dqn.yaml',
+    parser.add_argument('--hyperparams-file', '-hf', type=str, default='hyperparams/ppo2.yaml',
                         help='Hyperparameter YAML file location.')
     parser.add_argument('--model-name', '-mn', type=str, default='',
                         help='Model name (if it already exists, training will be resumed).')
