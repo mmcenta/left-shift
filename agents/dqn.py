@@ -139,6 +139,7 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
                 seed=seed,
                 tensorboard_log=tensorboard_log,
                 verbose=verbose,
+                n_cpu_tf_sess=2,
                 **model_kwargs)
 
     return model
