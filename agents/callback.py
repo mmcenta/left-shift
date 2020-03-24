@@ -8,11 +8,10 @@ class CustomCallback(BaseCallback):
 
     :param verbose: (int) Verbosity level 0: not output 1: info 2: debug
     """
-    def __init__(self, extract_tile_fn, print_histogram_fn, verbose=0):
+    def __init__(self, verbose=0):
         super(CustomCallback, self).__init__(verbose)
-        self.extract_max_tile = extract_tile_fn
-        self.print_histogram = print_histogram_fn
         self.num_episodes = 1
+        self.max_val = 0
         # Those variables will be accessible in the callback
         # (they are defined in the base class)
         # The RL model
@@ -35,8 +34,7 @@ class CustomCallback(BaseCallback):
         """
         This method is called before the first rollout starts.
         """
-        self.histogram = np.zeros(15)
-        self.max_val = 0
+        self.histogram = np.zeros(15, dtype = int)
 
     def _on_rollout_start(self) -> None:
         """
@@ -55,16 +53,16 @@ class CustomCallback(BaseCallback):
 
         :return: (bool) If the callback returns False, training is aborted early.
         """
-        timestep = self.locals['self'].num_timesteps
         num_episodes = len(self.locals['episode_rewards'])
         if num_episodes > self.num_episodes:
             self.num_episodes = num_episodes
             self.histogram[self.max_val] += 1
-        print('hey')
-        print(self.locals['self'])
-        self.max_val = self.extract_max_tile(self.locals['obs'])
-        if timestep % 500 == 0 :
-            self.print_histogram(self.histogram)
+            if num_episodes % 10 == 1 :
+                print('Histogram of maximum tile achieved:')
+                for i in range(1,15):
+                    if self.histogram[i] > 0:
+                        print(f'{2**i}: {self.histogram[i]}')
+        self.max_val = self.locals['self'].get_env().maximum_tile()
         return True
 
     def _on_rollout_end(self) -> None:
