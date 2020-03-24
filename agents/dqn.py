@@ -104,11 +104,16 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
 
     return model
 
-def get_model(model_name, hyperparams, verbose=1, seed=0, env_kwargs={}, tensorboard_log=''):
+def get_model(model_name, hyperparams, env, verbose=1, seed=0, env_kwargs={}, tensorboard_log=''):
     if verbose > 0:
         print("Creating model.")
-    if model_name and os.path.exists(os.path.join(save_dir, f'{model_name}.zip')):
-        return DQN.load(model_name)
+    save_dir = 'models'
+    model_path = os.path.join(save_dir, f'{model_name}.zip')
+    if model_name and os.path.exists(model_path):
+        model = DQN.load(model_path)
+        env = gym.make(env, **env_kwargs)
+        model.set_env(env)
+        return model
     else:
         return create_model(hyperparams,
                              tensorboard_log=tensorboard_log,
@@ -231,7 +236,7 @@ if __name__ == '__main__':
         'eval_episodes': args.eval_episodes,
     }
     env_kwargs = {'one_hot': args.one_hot}
-    model = get_model(args.model_name, hyperparams, verbose=args.verbose, seed=args.seed, env_kwargs=env_kwargs, tensorboard_log = args.tensorboard_log)
+    model = get_model(args.model_name, hyperparams, args.env, verbose=args.verbose, seed=args.seed, env_kwargs=env_kwargs, tensorboard_log = args.tensorboard_log)
 
     if args.train:
         train(model, args.model_name, hyperparams, **train_kwargs)
