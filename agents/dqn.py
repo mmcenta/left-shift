@@ -48,6 +48,39 @@ def evaluate(model, num_episodes=100):
     print("Histogram ", max_achieved)
 
 
+def my_cnn(image, **kwargs):
+    """
+    :param in: (TensorFlow Tensor) Image input placeholder
+    :param kwargs: (dict) Extra keywords parameters for the convolutional layers of the CNN
+    :return: (TensorFlow Tensor) The CNN output layer
+    """
+    activ = tf.nn.relu
+    print("image", image)
+    layer_1 = activ(conv(image, 'c1', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_2 = activ(conv(layer_1, 'c2', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_3 = activ(conv(layer_2, 'c3', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_4 = activ(conv(layer_3, 'c4', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_5 = activ(conv(layer_4, 'c5', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_lin = conv_to_fc(layer_5)
+    return layer_lin
+
+def my_cnn_4(image, **kwargs):
+    """
+    :param in: (TensorFlow Tensor) Image input placeholder
+    :param kwargs: (dict) Extra keywords parameters for the convolutional layers of the CNN
+    :return: (TensorFlow Tensor) The CNN output layer
+    """
+    activ = tf.nn.relu
+    print("image", image)
+    layer_1 = activ(conv(image, 'c1', n_filters=222, filter_size=4, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_2 = activ(conv(layer_1, 'c2', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_3 = activ(conv(layer_2, 'c3', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_4 = activ(conv(layer_3, 'c4', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_5 = activ(conv(layer_4, 'c5', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
+    layer_lin = conv_to_fc(layer_5)
+    return layer_lin
+
+
 def cnn_extractor(image, **kwargs):
     """
     CNN feature extrator for 2048.
@@ -63,7 +96,7 @@ def cnn_extractor(image, **kwargs):
     return activ(linear(layer_3, 'fc1', n_hidden=256, init_scale=np.sqrt(2)))
 
 
-def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log='', verbose=-1, seed=0, env_kwargs={}):
+def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log='', verbose=-1, seed=0, env_kwargs={}, extractor=''):
     """
     Create a DQN model from parameters. The model always uses the Prioritized
     Replay and Double-Q Learning extensions.
@@ -75,12 +108,18 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     :return: (BaseRLModel object) The corresponding model.
     """
     feature_extraction = "cnn" if hyperparams['cnn'] else "mlp"
+    if not extractor:
+        _extractor = cnn_extractor
+    elif extractor == '5l':
+        _extractor = my_cnn
+    elif extractor == '5l_4':
+        _extractor = my_cnn_4
     class CustomPolicy(FeedForwardPolicy):
         def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch,
                      reuse=False, obs_phs=None, dueling=True, **_kwargs):
             super(CustomPolicy, self).__init__(sess, ob_space, ac_space, n_env,
                                                n_steps, n_batch, reuse,
-                                               cnn_extractor=cnn_extractor,
+                                               cnn_extractor=_extractor,
                                                feature_extraction=feature_extraction,
                                                obs_phs=obs_phs, dueling=dueling,
                                                layer_norm=hyperparams['ln'], **_kwargs)
@@ -206,6 +245,8 @@ if __name__ == '__main__':
                         help='Verbose mode (0: no output, 1: INFO).')
     parser.add_argument('--no-one-hot', dest='one_hot', action='store_false',
                         help='Disable one-hot encoding')
+    parser.add_argument('--extractor', type=str, default='',
+                        help='Change extractor')
     args = parser.parse_args()
 
     # Load hyperparameters
