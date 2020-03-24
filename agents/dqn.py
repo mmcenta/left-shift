@@ -14,12 +14,7 @@ from stable_baselines.deepq.policies import FeedForwardPolicy
 import tensorflow as tf
 import yaml
 
-def extract_max_tile(obs):
-    max_val = 0
-    for i in range(4):
-        for j in range(4):
-            max_val = max(max_val, np.argmax(obs[i,j]))
-    return max_val
+from callback import CustomCallback
 
 def evaluate(model, num_episodes=100):
     """
@@ -30,7 +25,7 @@ def evaluate(model, num_episodes=100):
     """
     env = model.get_env()
     all_episode_rewards = []
-    max_achieved = np.zeros(15, dtype=int)
+    hist = np.zeros(15, dtype=int)
     for _ in range(num_episodes):
         done = False
         obs = env.reset()
@@ -40,13 +35,15 @@ def evaluate(model, num_episodes=100):
             if reward < 0:
                 action = random.sample(range(4),1)[0]
                 obs, reward, done, extras = env.step(action)
-        max_achieved[extract_max_tile(obs)] += 1
+        hist[env.maximum_tile()] += 1
         all_episode_rewards.append(extras['score'])
 
     mean_episode_reward = np.mean(all_episode_rewards)
     print("Reward: ", mean_episode_reward)
-    print("Histogram ", max_achieved)
-
+    print('Histogram of maximum tile achieved:')
+    for i in range(1,15):
+        if hist[i] > 0:
+            print(f'{2**i}: {hist[i]}')
 
 def cnn_extractor(image, **kwargs):
     """
@@ -93,7 +90,7 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     del model_kwargs['ln']
 
     model = DQN(CustomPolicy,
-                DummyVecEnv([lambda: gym.make(env, **env_kwargs)]),
+                gym.make(env, **env_kwargs),
                 policy_kwargs=policy_kwargs,
                 prioritized_replay=True,
                 double_q=True,
@@ -116,6 +113,7 @@ def train(model_name, hyperparams,
           save_freq=1e4,
           save_dir='models',
           eval_freq=1e4,
+          hist_freq=100,
           eval_episodes=5,
           env_kwargs={}):
     """
@@ -160,6 +158,10 @@ def train(model_name, hyperparams,
                                     n_eval_episodes=eval_episodes, eval_freq=eval_freq,
                                     log_path=log_dir)
         callbacks.append(eval_callback)
+
+    if hist_freq > 0:
+        custom_callback = CustomCallback(save_path=save_dir, hist_freq=hist_freq, verbose=verbose)
+        callbacks.append(custom_callback)
 
     if verbose > 0:
         print("Beginning training.")

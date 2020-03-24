@@ -1,6 +1,7 @@
 # unusable until we find how to access states within _on_step()
 from stable_baselines.common.callbacks import BaseCallback
 import numpy as np
+import os
 
 class CustomCallback(BaseCallback):
     """
@@ -8,10 +9,17 @@ class CustomCallback(BaseCallback):
 
     :param verbose: (int) Verbosity level 0: not output 1: info 2: debug
     """
-    def __init__(self, verbose=0):
+    def __init__(self, save_path=None, hist_freq:int=100, verbose=0):
         super(CustomCallback, self).__init__(verbose)
         self.num_episodes = 1
         self.max_val = 0
+        self.histogram = np.zeros(15, dtype = int)
+        self.verbose = verbose
+        self.hist_freq = int(hist_freq)
+        self.save_path = save_path
+        self.last_timestep = 1
+        self.episode_lengths= []
+        self.episode_maxtiles = []
         # Those variables will be accessible in the callback
         # (they are defined in the base class)
         # The RL model
@@ -34,7 +42,10 @@ class CustomCallback(BaseCallback):
         """
         This method is called before the first rollout starts.
         """
-        self.histogram = np.zeros(15, dtype = int)
+
+        # print(self.verbose, type(self.hist_freq))
+        pass
+        
 
     def _on_rollout_start(self) -> None:
         """
@@ -53,15 +64,24 @@ class CustomCallback(BaseCallback):
 
         :return: (bool) If the callback returns False, training is aborted early.
         """
+        timestep = self.locals['self'].num_timesteps
         num_episodes = len(self.locals['episode_rewards'])
         if num_episodes > self.num_episodes:
             self.num_episodes = num_episodes
             self.histogram[self.max_val] += 1
-            if num_episodes % 10 == 1 :
-                print('Histogram of maximum tile achieved:')
-                for i in range(1,15):
-                    if self.histogram[i] > 0:
-                        print(f'{2**i}: {self.histogram[i]}')
+            self.episode_maxtiles.append(self.max_val)
+            self.episode_lengths.append(timestep-self.last_timestep)
+            self.last_timestep = timestep
+            if self.hist_freq > 0 and num_episodes % self.hist_freq == 0 :
+                if self.save_path is not None:
+                    log_path = os.path.join(self.save_path, 'log')
+                    np.savez(log_path, rewards=self.locals['episode_rewards'], lengths=self.episode_lengths, max_tiles=self.episode_maxtiles)
+                    
+                if self.verbose:
+                    print('Histogram of maximum tile achieved:')
+                    for i in range(1,15):
+                        if self.histogram[i] > 0:
+                            print(f'{2**i}: {self.histogram[i]}')
         self.max_val = self.locals['self'].get_env().maximum_tile()
         return True
 
