@@ -63,7 +63,7 @@ def cnn_extractor(image, **kwargs):
     return activ(linear(layer_3, 'fc1', n_hidden=256, init_scale=np.sqrt(2)))
 
 
-def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log='', verbose=-1, seed=0):
+def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log='', verbose=-1, seed=0, env_kwargs={}):
     """
     Create a DQN model from parameters. The model always uses the Prioritized
     Replay and Double-Q Learning extensions.
@@ -80,7 +80,7 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
                      reuse=False, obs_phs=None, dueling=True, **_kwargs):
             super(CustomPolicy, self).__init__(sess, ob_space, ac_space, n_env,
                                                n_steps, n_batch, reuse,
-                                               cnn_extractor=my_cnn,
+                                               cnn_extractor=cnn_extractor,
                                                feature_extraction=feature_extraction,
                                                obs_phs=obs_phs, dueling=dueling,
                                                layer_norm=hyperparams['ln'], **_kwargs)
@@ -93,7 +93,7 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     del model_kwargs['ln']
 
     model = DQN(CustomPolicy,
-                DummyVecEnv([lambda: gym.make(env, cnn=hyperparams['cnn'])]),
+                DummyVecEnv([lambda: gym.make(env, **env_kwargs)]),
                 policy_kwargs=policy_kwargs,
                 prioritized_replay=True,
                 double_q=True,
@@ -142,7 +142,8 @@ def train(model_name, hyperparams,
         model = create_model(hyperparams,
                              tensorboard_log=tensorboard_log,
                              verbose=verbose,
-                             seed=seed)
+                             seed=seed,
+                             env_kwargs=env_kwargs)
 
     callbacks = []
     if save_freq > 0:
