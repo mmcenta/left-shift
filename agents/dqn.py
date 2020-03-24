@@ -14,12 +14,7 @@ from stable_baselines.deepq.policies import FeedForwardPolicy
 import tensorflow as tf
 import yaml
 
-def extract_max_tile(obs):
-    max_val = 0
-    for i in range(4):
-        for j in range(4):
-            max_val = max(max_val, np.argmax(obs[i,j]))
-    return max_val
+from callback import CustomCallback
 
 def evaluate(model, num_episodes=100):
     """
@@ -30,7 +25,7 @@ def evaluate(model, num_episodes=100):
     """
     env = model.get_env()
     all_episode_rewards = []
-    max_achieved = np.zeros(15, dtype=int)
+    hist = np.zeros(15, dtype=int)
     for _ in range(num_episodes):
         done = False
         obs = env.reset()
@@ -40,13 +35,15 @@ def evaluate(model, num_episodes=100):
             if reward < 0:
                 action = random.sample(range(4),1)[0]
                 obs, reward, done, extras = env.step(action)
-        max_achieved[extract_max_tile(obs)] += 1
+        hist[env.maximum_tile()] += 1
         all_episode_rewards.append(extras['score'])
 
     mean_episode_reward = np.mean(all_episode_rewards)
     print("Reward: ", mean_episode_reward)
-    print("Histogram ", max_achieved)
-
+    print('Histogram of maximum tile achieved:')
+    for i in range(1,15):
+        if hist[i] > 0:
+            print(f'{2**i}: {hist[i]}')
 
 def cnn_extractor(image, **kwargs):
     """
@@ -64,7 +61,7 @@ def cnn_extractor(image, **kwargs):
     return layer_lin
 
 
-def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log='', verbose=-1, seed=0):
+def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log='', verbose=-1, seed=0, env_kwargs={}):
     """
     Create a DQN model from parameters. The model always uses the Prioritized
     Replay and Double-Q Learning extensions.
@@ -94,7 +91,7 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     del model_kwargs['ln']
 
     model = DQN(CustomPolicy,
-                DummyVecEnv([lambda: gym.make(env, cnn=hyperparams['cnn'])]),
+                gym.make(env, **env_kwargs),
                 policy_kwargs=policy_kwargs,
                 prioritized_replay=True,
                 double_q=True,
@@ -105,10 +102,26 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
 
     return model
 
+def get_model(model_name, hyperparams, env, verbose=1, seed=0, env_kwargs={}, tensorboard_log=''):
+    if verbose > 0:
+        print("Creating model.")
+    save_dir = 'models'
+    model_path = os.path.join(save_dir, f'{model_name}.zip')
+    if model_name and os.path.exists(model_path):
+        model = DQN.load(model_path)
+        env = gym.make(env, **env_kwargs)
+        model.set_env(env)
+        return model
+    else:
+        return create_model(hyperparams,
+                             tensorboard_log=tensorboard_log,
+                             verbose=verbose,
+                             seed=seed,
+                             env_kwargs=env_kwargs)
 
-def train(model_name, hyperparams,
+
+def train(model, model_name, hyperparams,
           env="gym_text2048:Text2048-v0",
-          tensorboard_log='',
           verbose=-1,
           seed=0,
           n_timesteps=1e7,
@@ -117,7 +130,9 @@ def train(model_name, hyperparams,
           save_freq=1e4,
           save_dir='models',
           eval_freq=1e4,
-          eval_episodes=5):
+          hist_freq=100,
+          eval_episodes=5,
+          env_kwargs={}):
     """
     Create (or load) and train a DQN model. The model always uses the Prioritized
     Replay and Double-Q Learning extensions.
@@ -134,15 +149,6 @@ def train(model_name, hyperparams,
     :param eval_freq: (int) Evaluate the agent every n steps (if negative, no evaluation).
     :param eval_episodes: (int) Number of episodes to use for evaluation.
     """
-    if verbose > 0:
-        print("Creating model.")
-    if os.path.exists(os.path.join(save_dir, f'{model_name}.zip')):
-        model = DQN.load(model_name)
-    else:
-        model = create_model(hyperparams,
-                             tensorboard_log=tensorboard_log,
-                             verbose=verbose,
-                             seed=seed)
 
     callbacks = []
     if save_freq > 0:
@@ -153,12 +159,16 @@ def train(model_name, hyperparams,
         if verbose > 0:
             print("Creating evaluation environment")
 
-        env = gym.make(env, cnn=hyperparams['cnn'])
+        env = gym.make(env, **env_kwargs)
         env.seed(seed)
         eval_callback = EvalCallback(env, best_model_save_path=save_dir,
                                     n_eval_episodes=eval_episodes, eval_freq=eval_freq,
                                     log_path=log_dir)
         callbacks.append(eval_callback)
+
+    if hist_freq > 0:
+        custom_callback = CustomCallback(save_path=save_dir, hist_freq=hist_freq, verbose=verbose)
+        callbacks.append(custom_callback)
 
     if verbose > 0:
         print("Beginning training.")
@@ -169,7 +179,6 @@ def train(model_name, hyperparams,
     except KeyboardInterrupt:
         pass
 
-    evaluate(model)
     if verbose > 0:
         print('Saving final model.')
     model.save(os.path.join(save_dir, model_name))
@@ -185,15 +194,15 @@ if __name__ == '__main__':
                         help='Hyperparameter YAML file location.')
     parser.add_argument('--model-name', '-mn', type=str, default='',
                         help='Model name (if it already exists, training will be resumed).')
-    parser.add_argument('--n-timesteps', '-n', type=int, default=1e7,
+    parser.add_argument('--n-timesteps', '-n', type=int, default=int(1e7),
                         help='Number of timesteps.')
-    parser.add_argument('--log-interval', type=int, default=1e4,
+    parser.add_argument('--log-interval', type=int, default=int(1e4),
                         help='Log interval.')
-    parser.add_argument('--eval-freq', type=int, default=1e4,
+    parser.add_argument('--eval-freq', type=int, default=int(1e4),
                         help='Evaluate the agent every n steps (if negative, no evaluation).')
     parser.add_argument('--eval-episodes', type=int, default=5,
                         help='Number of episodes to use for evaluation.')
-    parser.add_argument('--save-freq', type=int, default=1e5,
+    parser.add_argument('--save-freq', type=int, default=int(1e5),
                         help='Save the model every n steps (if negative, no checkpoint).')
     parser.add_argument('--save-directory', '-sd', type=str, default='models',
                         help='Save directory.')
@@ -203,6 +212,12 @@ if __name__ == '__main__':
                         help='Random generator seed.')
     parser.add_argument('--verbose', type=int, default=1,
                         help='Verbose mode (0: no output, 1: INFO).')
+    parser.add_argument('--no-one-hot', dest='one_hot', action='store_false',
+                        help='Disable one-hot encoding')
+    parser.add_argument('--no-train', dest='train', action='store_false',
+                        help='Disable training')
+    parser.add_argument('--no-eval', dest='eval', action='store_false',
+                        help='Disable evaluation')
     args = parser.parse_args()
 
     # Load hyperparameters
@@ -214,7 +229,6 @@ if __name__ == '__main__':
     # Gather train kwargs
     train_kwargs = {
         'env': args.env,
-        'tensorboard_log': args.tensorboard_log,
         'verbose': args.verbose,
         'seed': args.seed,
         'n_timesteps': args.n_timesteps,
@@ -223,7 +237,12 @@ if __name__ == '__main__':
         'save_freq': args.save_freq,
         'save_dir': args.save_directory,
         'eval_freq': args.eval_freq,
-        'eval_episodes': args.eval_episodes
+        'eval_episodes': args.eval_episodes,
     }
+    env_kwargs = {'one_hot': args.one_hot}
+    model = get_model(args.model_name, hyperparams, args.env, verbose=args.verbose, seed=args.seed, env_kwargs=env_kwargs, tensorboard_log = args.tensorboard_log)
 
-    train(args.model_name, hyperparams, **train_kwargs)
+    if args.train:
+        train(model, args.model_name, hyperparams, **train_kwargs)
+    if args.eval:
+        evaluate(model)
