@@ -26,7 +26,7 @@ We recommend using a separate Python 3.7 environment for this project (there is 
 
 A quick way to install them is to run the following command:
 `pip install -r [requirements.txt|requirements-gpu.txt]`,
-choosing the appropriate file for CPUs and GPUs.
+choosing the appropriate file depending on whether you wish to run the models on a CPU or a GPU.
 
 To install the envronment, execute the following commands:
 ```
