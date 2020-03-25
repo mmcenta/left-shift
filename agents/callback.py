@@ -9,7 +9,7 @@ class CustomCallback(BaseCallback):
 
     :param verbose: (int) Verbosity level 0: not output 1: info 2: debug
     """
-    def __init__(self, log_dir=None, hist_freq:int=100, verbose=0):
+    def __init__(self, log_dir='logs', hist_freq:int=100, verbose=0, log_file='log'):
         super(CustomCallback, self).__init__(verbose)
         self.num_episodes = 1
         self.max_val = 0
@@ -17,6 +17,7 @@ class CustomCallback(BaseCallback):
         self.verbose = verbose
         self.hist_freq = int(hist_freq)
         self.log_dir = log_dir
+        self.log_file = log_file
         self.last_timestep = 1
         self.episode_lengths= []
         self.episode_maxtiles = []
@@ -74,14 +75,17 @@ class CustomCallback(BaseCallback):
             self.last_timestep = timestep
             if self.hist_freq > 0 and num_episodes % self.hist_freq == 0 :
                 if self.log_dir is not None:
-                    log_path = os.path.join(self.log_dir, 'log')
+                    log_path = os.path.join(self.log_dir, self.log_file)
                     np.savez(log_path, rewards=self.locals['episode_rewards'], lengths=self.episode_lengths, max_tiles=self.episode_maxtiles)
                     
                 if self.verbose:
+                    print()
+                    print(f'#episodes: {num_episodes}')
                     print('Histogram of maximum tile achieved:')
                     for i in range(1,15):
                         if self.histogram[i] > 0:
                             print(f'{2**i}: {self.histogram[i]}')
+                    print()
         self.max_val = self.locals['self'].get_env().maximum_tile()
         return True
 
