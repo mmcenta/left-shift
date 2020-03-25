@@ -1,5 +1,7 @@
 # left-shift
 
+![A DQN agent reaching the 2048 tile.](docs/2048.gif)
+
 This repository contains the code used in our project for the INF581: Advanced Topics in A.I. at École Polytechnique. We tackle the problem of training an agent to play the [game 2048](https://en.wikipedia.org/wiki/2048_(video_game)) with Reinforcement Learning. Our algorithm of choice is Deep Q-Learning (DQN).
 
 ## Project Structure
@@ -12,7 +14,7 @@ Below we detail the function of each directory:
 * `utils`: contains auxiliary scripts for plotting results.
 
 ## Instalation
- 
+
 We recommend using a separate Python 3.7 environment for this project (there is an incompatibility issue when trying to load models created using Python 3.7 on other versions). Our dependencies are:
 
 * [PyYAML](https://pyyaml.org);
