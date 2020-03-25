@@ -9,14 +9,14 @@ class CustomCallback(BaseCallback):
 
     :param verbose: (int) Verbosity level 0: not output 1: info 2: debug
     """
-    def __init__(self, save_path=None, hist_freq:int=100, verbose=0):
+    def __init__(self, log_dir=None, hist_freq:int=100, verbose=0):
         super(CustomCallback, self).__init__(verbose)
         self.num_episodes = 1
         self.max_val = 0
         self.histogram = np.zeros(15, dtype = int)
         self.verbose = verbose
         self.hist_freq = int(hist_freq)
-        self.save_path = save_path
+        self.log_dir = log_dir
         self.last_timestep = 1
         self.episode_lengths= []
         self.episode_maxtiles = []
@@ -73,8 +73,8 @@ class CustomCallback(BaseCallback):
             self.episode_lengths.append(timestep-self.last_timestep)
             self.last_timestep = timestep
             if self.hist_freq > 0 and num_episodes % self.hist_freq == 0 :
-                if self.save_path is not None:
-                    log_path = os.path.join(self.save_path, 'log')
+                if self.log_dir is not None:
+                    log_path = os.path.join(self.log_dir, 'log')
                     np.savez(log_path, rewards=self.locals['episode_rewards'], lengths=self.episode_lengths, max_tiles=self.episode_maxtiles)
                     
                 if self.verbose:
