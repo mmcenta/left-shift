@@ -18,8 +18,8 @@ from custom_policy import CustomPolicy
 def evaluate(model, num_episodes=100):
     """
     Evaluate a RL agent
-    :param model: (BaseRLModel object) the RL Agent
-    :param num_episodes: (int) number of episodes to evaluate it
+    :param model: (BaseRLModel object) The RL Agent.
+    :param num_episodes: (int) Number of evaluation episodes.
     :return: (float) Mean reward for the last num_episodes
     """
     print('Evaluating model.')
@@ -46,7 +46,13 @@ def evaluate(model, num_episodes=100):
             print(f'{2**i}: {hist[i]}')
 
 
-def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log='', verbose=-1, seed=0, env_kwargs={}, extractor=''):
+def create_model(hyperparams,
+                env="gym_text2048:Text2048-v0",
+                tensorboard_log='',
+                verbose=0,
+                seed=0,
+                env_kwargs={},
+                extractor=''):
     """
     Create a DQN model from parameters. The model always uses the Prioritized
     Replay and Double-Q Learning extensions.
@@ -55,15 +61,20 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     :param tensorboard_log: (str) The Tensorboard log directory.
     :param verbose: (int) Verbose mode (0: no output, 1: INFO).
     :param seed: (int) Random generator seed.
+    :param env_kwargs: (dict) Keyword arguments passed to the environment.
+    :param extractor: (str) Name of the CNN extractor to use.
     :return: (BaseRLModel object) The corresponding model.
     """
     feature_extraction = "cnn" if hyperparams['cnn'] else "mlp"
-    
+
 
     # Prepare kwargs for the constructor
-    policy_kwargs = dict(layers=hyperparams['layers'], extractor=extractor)
+    policy_kwargs = dict(layers=hyperparams['layers'],
+                         dueling=hyperparams['dueling'],
+                         extractor=extractor)
     model_kwargs = copy.deepcopy(hyperparams)
     del model_kwargs['layers']
+    del model_kwargs['dueling']
     del model_kwargs['cnn']
     del model_kwargs['ln']
 
@@ -71,7 +82,6 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
                 gym.make(env, **env_kwargs),
                 policy_kwargs=policy_kwargs,
                 prioritized_replay=True,
-                double_q=True,
                 seed=seed,
                 tensorboard_log=tensorboard_log,
                 verbose=verbose,
@@ -79,11 +89,31 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
 
     return model
 
-def get_model(model_name, hyperparams, env, verbose=1, seed=0, env_kwargs={}, tensorboard_log='', extractor=''):
-    
+def get_model(model_name,
+              save_dir,
+              env,
+              hyperparams={},
+              verbose=0,
+              seed=0,
+              env_kwargs={},
+              tensorboard_log='',
+              extractor=''):
+    """
+    Load a DQN model if saved and create it otherwise.
+    :param model_name: (str) The model name.
+    :param save_dir: (str) The directory where the models are saved.
+    :param env: (str) Environment id.
+    :param hyperparams: (dict) A dict containing the model hyperparameters.
+    :param verbose: (int) Verbose mode (0: no output, 1: INFO).
+    :param seed: (int) Random generator seed.
+    :param env_kwargs: (dict) Keyword arguments passed to the environment.
+    :param tensorboard_log: (str) The Tensorboard log directory.
+    :param extractor: (str) Name of the CNN extractor to use.
+    :return: (BaseRLModel object) The corresponding model.
+    """
     if verbose > 0:
-        print("Creating model.")
-    save_dir = 'models'
+        print("Setting up model.")
+
     model_path = os.path.join(save_dir, f'{model_name}.zip')
     if model_name and os.path.exists(model_path):
         model = DQN.load(model_path)
@@ -113,7 +143,7 @@ def train(model, model_name, hyperparams,
           env_kwargs={}):
     """
     Create (or load) and train a DQN model. The model always uses the Prioritized
-    Replay and Double-Q Learning extensions.
+    Replay extension.
     :param hyperparams: (dict) A dict containing the model hyperparameters.
     :param env: (str) Environment id.
     :param tensorboard_log: (str) The Tensorboard log directory.
@@ -132,17 +162,6 @@ def train(model, model_name, hyperparams,
     if save_freq > 0:
         callbacks.append(CheckpointCallback(save_freq=save_freq, save_path=save_dir,
                                             name_prefix=model_name, verbose=1))
-
-    # if eval_freq > 0:
-    #     if verbose > 0:
-    #         print("Creating evaluation environment")
-
-    #     env = gym.make(env, **env_kwargs)
-    #     env.seed(seed)
-    #     eval_callback = EvalCallback(env, best_model_save_path=save_dir,
-    #                                 n_eval_episodes=eval_episodes, eval_freq=eval_freq,
-    #                                 log_path=log_dir)
-    #     callbacks.append(eval_callback)
 
     if hist_freq > 0:
         custom_callback = CustomCallback(log_dir=log_dir, hist_freq=hist_freq, verbose=verbose, log_file=model_name, eval_episodes=eval_episodes)
@@ -225,9 +244,20 @@ if __name__ == '__main__':
         'hist_freq': args.hist_freq,
         'eval_episodes': args.eval_episodes,
     }
-    env_kwargs = {'one_hot': args.one_hot}
-    model = get_model(args.model_name, hyperparams, args.env, verbose=args.verbose, seed=args.seed, env_kwargs=env_kwargs, tensorboard_log = args.tensorboard_log, extractor=args.extractor)
 
+    # Gather env kwargs
+    env_kwargs = {'one_hot': args.one_hot}
+
+    # Get model (load if available, create otherwise)
+    model = get_model(args.model_name, args.save_directory, args.env,
+                      hyperparams=hyperparams,
+                      verbose=args.verbose,
+                      seed=args.seed,
+                      env_kwargs=env_kwargs,
+                      tensorboard_log = args.tensorboard_log,
+                      extractor=args.extractor)
+
+    # Execute the job
     if args.train:
         train(model, args.model_name, hyperparams, **train_kwargs)
     if args.eval:

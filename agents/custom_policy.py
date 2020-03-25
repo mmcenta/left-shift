@@ -49,7 +49,7 @@ def fc(image, base_net, **kwargs):
 class CustomPolicy(DQNPolicy):
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, layers=None,
             extractor='', feature_extraction="cnn",
-            obs_phs=None, layer_norm=False, dueling=True, act_fun=tf.nn.relu, **kwargs):
+            obs_phs=None, layer_norm=False, dueling=False, act_fun=tf.nn.relu, **kwargs):
         super(CustomPolicy, self).__init__(sess, ob_space, ac_space, n_env, n_steps,
                                             n_batch, dueling=dueling, reuse=reuse,
                                             scale=(feature_extraction == "cnn"), obs_phs=obs_phs)
