@@ -167,7 +167,7 @@ def train(model, model_name, hyperparams,
     #     callbacks.append(eval_callback)
 
     if hist_freq > 0:
-        custom_callback = CustomCallback(save_path=save_dir, hist_freq=hist_freq, verbose=verbose)
+        custom_callback = CustomCallback(log_dir=log_dir, hist_freq=hist_freq, verbose=verbose)
         callbacks.append(custom_callback)
 
     if verbose > 0:
