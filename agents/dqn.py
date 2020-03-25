@@ -155,16 +155,16 @@ def train(model, model_name, hyperparams,
         callbacks.append(CheckpointCallback(save_freq=save_freq, save_path=save_dir,
                                             name_prefix=model_name, verbose=1))
 
-    if eval_freq > 0:
-        if verbose > 0:
-            print("Creating evaluation environment")
+    # if eval_freq > 0:
+    #     if verbose > 0:
+    #         print("Creating evaluation environment")
 
-        env = gym.make(env, **env_kwargs)
-        env.seed(seed)
-        eval_callback = EvalCallback(env, best_model_save_path=save_dir,
-                                    n_eval_episodes=eval_episodes, eval_freq=eval_freq,
-                                    log_path=log_dir)
-        callbacks.append(eval_callback)
+    #     env = gym.make(env, **env_kwargs)
+    #     env.seed(seed)
+    #     eval_callback = EvalCallback(env, best_model_save_path=save_dir,
+    #                                 n_eval_episodes=eval_episodes, eval_freq=eval_freq,
+    #                                 log_path=log_dir)
+    #     callbacks.append(eval_callback)
 
     if hist_freq > 0:
         custom_callback = CustomCallback(save_path=save_dir, hist_freq=hist_freq, verbose=verbose)
