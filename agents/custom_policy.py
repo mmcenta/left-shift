@@ -27,7 +27,6 @@ def cnn_5l4(image, **kwargs):
     :return: (TensorFlow Tensor) The CNN output layer
     """
     activ = tf.nn.relu
-    print("image", image)
     layer_1 = activ(conv(image, 'c1', n_filters=222, filter_size=4, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
     layer_2 = activ(conv(layer_1, 'c2', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
     layer_3 = activ(conv(layer_2, 'c3', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
@@ -35,6 +34,17 @@ def cnn_5l4(image, **kwargs):
     layer_5 = activ(conv(layer_4, 'c5', n_filters=222, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
     layer_lin = conv_to_fc(layer_5)
     return layer_lin
+
+def fc(image, base_net, **kwargs):
+    """
+    :param in: (TensorFlow Tensor) Image input placeholder
+    :param kwargs: (dict) Extra keywords parameters for the convolutional layers of the CNN
+    :return: (TensorFlow Tensor) The CNN output layer
+    """
+    activ = tf.nn.relu
+    output = base_net(image, **kwargs)
+    lin_1 = activ(linear(output, 'fc1', 512, init_bias=np.sqrt(2)))
+    return activ(linear(lin_1, 'fc2', 128, init_bias=np.sqrt(2)))
 
 class CustomPolicy(DQNPolicy):
     def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch, reuse=False, layers=None,
