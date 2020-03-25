@@ -22,6 +22,7 @@ def evaluate(model, num_episodes=100):
     :param num_episodes: (int) number of episodes to evaluate it
     :return: (float) Mean reward for the last num_episodes
     """
+    print('Evaluating model.')
     env = model.get_env()
     all_episode_rewards = []
     hist = np.zeros(15, dtype=int)
@@ -104,9 +105,7 @@ def train(model, model_name, hyperparams,
           log_dir='logs',
           save_freq=1e4,
           save_dir='models',
-          eval_freq=1e4,
           hist_freq=100,
-          eval_episodes=5,
           env_kwargs={}):
     """
     Create (or load) and train a DQN model. The model always uses the Prioritized
@@ -142,7 +141,7 @@ def train(model, model_name, hyperparams,
     #     callbacks.append(eval_callback)
 
     if hist_freq > 0:
-        custom_callback = CustomCallback(log_dir=log_dir, hist_freq=hist_freq, verbose=verbose)
+        custom_callback = CustomCallback(log_dir=log_dir, hist_freq=hist_freq, verbose=verbose, log_file=model_name)
         callbacks.append(custom_callback)
 
     if verbose > 0:
@@ -157,6 +156,8 @@ def train(model, model_name, hyperparams,
     if verbose > 0:
         print('Saving final model.')
     model.save(os.path.join(save_dir, model_name))
+    if verbose > 0:
+        print('Final model saved.')
 
 
 if __name__ == '__main__':
@@ -173,9 +174,9 @@ if __name__ == '__main__':
                         help='Number of timesteps.')
     parser.add_argument('--log-interval', type=int, default=int(1e4),
                         help='Log interval.')
-    parser.add_argument('--eval-freq', type=int, default=int(1e4),
-                        help='Evaluate the agent every n steps (if negative, no evaluation).')
-    parser.add_argument('--eval-episodes', type=int, default=5,
+    parser.add_argument('--hist-freq', type=int, default=100,
+                        help='Dumps histogram each n steps.')
+    parser.add_argument('--eval-episodes', type=int, default=100,
                         help='Number of episodes to use for evaluation.')
     parser.add_argument('--save-freq', type=int, default=int(1e5),
                         help='Save the model every n steps (if negative, no checkpoint).')
@@ -211,8 +212,7 @@ if __name__ == '__main__':
         'log_dir': args.log_directory,
         'save_freq': args.save_freq,
         'save_dir': args.save_directory,
-        'eval_freq': args.eval_freq,
-        'eval_episodes': args.eval_episodes,
+        'hist_freq': args.hist_freq,
     }
     env_kwargs = {'one_hot': args.one_hot}
     model = get_model(args.model_name, hyperparams, args.env, verbose=args.verbose, seed=args.seed, env_kwargs=env_kwargs, tensorboard_log = args.tensorboard_log)
@@ -220,4 +220,4 @@ if __name__ == '__main__':
     if args.train:
         train(model, args.model_name, hyperparams, **train_kwargs)
     if args.eval:
-        evaluate(model)
+        evaluate(model, args.eval_episodes)
