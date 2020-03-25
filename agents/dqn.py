@@ -46,7 +46,7 @@ def evaluate(model, num_episodes=100):
             print(f'{2**i}: {hist[i]}')
 
 
-def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log='', verbose=-1, seed=0, env_kwargs={}):
+def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log='', verbose=-1, seed=0, env_kwargs={}, extractor=''):
     """
     Create a DQN model from parameters. The model always uses the Prioritized
     Replay and Double-Q Learning extensions.
@@ -59,8 +59,10 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     """
     feature_extraction = "cnn" if hyperparams['cnn'] else "mlp"
 
+    
+
     # Prepare kwargs for the constructor
-    policy_kwargs = dict(layers=hyperparams['layers'])
+    policy_kwargs = dict(layers=hyperparams['layers'], extractor=extractor)
     model_kwargs = copy.deepcopy(hyperparams)
     del model_kwargs['layers']
     del model_kwargs['cnn']
@@ -141,7 +143,7 @@ def train(model, model_name, hyperparams,
     #     callbacks.append(eval_callback)
 
     if hist_freq > 0:
-        custom_callback = CustomCallback(log_dir=log_dir, hist_freq=hist_freq, verbose=verbose, log_file=model_name)
+        custom_callback = CustomCallback(log_dir=log_dir, hist_freq=hist_freq, verbose=verbose, log_file=model_name, eval_episodes=eval_episodes)
         callbacks.append(custom_callback)
 
     if verbose > 0:
@@ -153,11 +155,15 @@ def train(model, model_name, hyperparams,
     except KeyboardInterrupt:
         pass
 
-    if verbose > 0:
-        print('Saving final model.')
-    model.save(os.path.join(save_dir, model_name))
-    if verbose > 0:
-        print('Final model saved.')
+    if hist_freq > 0:
+        custom_callback._dump_values()
+
+    if model_name:
+        if verbose > 0:
+            print('Saving final model.')
+        model.save(os.path.join(save_dir, model_name))
+        if verbose > 0:
+            print('Final model saved.')
 
 
 if __name__ == '__main__':
@@ -192,8 +198,10 @@ if __name__ == '__main__':
                         help='Disable one-hot encoding')
     parser.add_argument('--no-train', dest='train', action='store_false',
                         help='Disable training')
-    parser.add_argument('--no-eval', dest='eval', action='store_false',
-                        help='Disable evaluation')
+    parser.add_argument('--eval', dest='eval', action='store_true',
+                        help='Enable evaluation')
+    parser.add_argument('--extractor', type=str, default='',
+                        help='Change extractor')
     args = parser.parse_args()
 
     # Load hyperparameters
