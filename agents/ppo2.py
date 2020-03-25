@@ -16,7 +16,7 @@ import tensorflow as tf
 import yaml
 
 from callback import CustomCallbackPPO2
-from custom_policy import cnn_5l4, cnn_custom
+from custom_policy import CustomPolicy, cnn_5l4
 
 def evaluate(model, num_episodes=100):
     """
@@ -62,10 +62,10 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     """
     feature_extraction = "cnn" if hyperparams['cnn'] else "mlp"
 
-        if not extractor:
-            cnn_extractor = cnn_custom
-        elif extractor == '5l4':
-            cnn_extractor = cnn_5l4
+    if not extractor:
+        cnn_extractor = cnn_custom
+    elif extractor == '5l4':
+        cnn_extractor = cnn_5l4
     
 
     # Prepare kwargs for the constructor
