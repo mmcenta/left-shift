@@ -7,14 +7,13 @@ import time
 import gym
 import numpy as np
 from stable_baselines import DQN
-from stable_baselines.a2c.utils import conv, conv_to_fc, linear
 from stable_baselines.common.callbacks import CheckpointCallback, EvalCallback
 from stable_baselines.common.vec_env import DummyVecEnv
-from stable_baselines.deepq.policies import FeedForwardPolicy
 import tensorflow as tf
 import yaml
 
 from callback import CustomCallback
+from custom_policy import CustomPolicy
 
 def evaluate(model, num_episodes=100):
     """
@@ -45,21 +44,6 @@ def evaluate(model, num_episodes=100):
         if hist[i] > 0:
             print(f'{2**i}: {hist[i]}')
 
-def cnn_extractor(image, **kwargs):
-    """
-    CNN feature extrator for 2048.
-    :param image: (TensorFlow Tensor) Image input placeholder.
-    :param kwargs: (dict) Extra keywords parameters for the convolutional layers of the CNN.
-    :return: (TensorFlow Tensor) The CNN output layer.
-    """
-    activ = tf.nn.relu
-    layer_1 = activ(conv(image, 'c1', n_filters=128, filter_size=4, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
-    layer_2 = activ(conv(layer_1, 'c2', n_filters=128, filter_size=3, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
-    layer_3 = activ(conv(layer_2, 'c3', n_filters=256, filter_size=2, stride=2, pad='VALID', init_scale=np.sqrt(2), **kwargs))
-    layer_4 = activ(conv(layer_2, 'c4', n_filters=256, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
-    layer_lin = conv_to_fc(layer_3)
-    return layer_lin
-
 
 def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log='', verbose=-1, seed=0, env_kwargs={}):
     """
@@ -73,15 +57,6 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     :return: (BaseRLModel object) The corresponding model.
     """
     feature_extraction = "cnn" if hyperparams['cnn'] else "mlp"
-    class CustomPolicy(FeedForwardPolicy):
-        def __init__(self, sess, ob_space, ac_space, n_env, n_steps, n_batch,
-                     reuse=False, obs_phs=None, dueling=True, **_kwargs):
-            super(CustomPolicy, self).__init__(sess, ob_space, ac_space, n_env,
-                                               n_steps, n_batch, reuse,
-                                               cnn_extractor=cnn_extractor,
-                                               feature_extraction=feature_extraction,
-                                               obs_phs=obs_phs, dueling=dueling,
-                                               layer_norm=hyperparams['ln'], **_kwargs)
 
     # Prepare kwargs for the constructor
     policy_kwargs = dict(layers=hyperparams['layers'])
