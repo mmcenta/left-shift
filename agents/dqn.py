@@ -15,7 +15,7 @@ import yaml
 from callback import CustomCallback
 from custom_policy import CustomPolicy
 
-def evaluate(model, num_episodes=100, render=False):
+def evaluate(model, num_episodes=100, demo=False):
     """
     Evaluate a RL agent
     :param model: (BaseRLModel object) The RL Agent.
@@ -35,10 +35,9 @@ def evaluate(model, num_episodes=100, render=False):
             if reward < 0:
                 action = random.sample(range(4),1)[0]
                 obs, reward, done, extras = env.step(action)
-            if render:
-                pass
-                # time.sleep(.1)
-        env.render()
+            if demo:
+                env.render()
+                time.sleep(.05)
         hist[env.maximum_tile()] += 1
         all_episode_rewards.append(extras['score'])
 
@@ -237,6 +236,7 @@ if __name__ == '__main__':
         args.train = False
         args.eval = True
         args.eval_episodes = 1
+        args.seed = 8
 
     # Load hyperparameters
     if args.verbose > 0:
