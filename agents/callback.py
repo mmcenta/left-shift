@@ -96,6 +96,8 @@ class CustomCallback(BaseCallback):
         num_episodes = self.num_episodes
         if self.log_dir and self.log_file:
             log_path = os.path.join(self.log_dir, self.log_file)
+            if os.path.exists(log_path):
+                os.rename(log_path, log_path+'.bkp')
             np.savez(log_path, rewards=self.locals['episode_rewards'], lengths=self.episode_lengths, max_tiles=self.episode_maxtiles)
             
         if self.verbose:
