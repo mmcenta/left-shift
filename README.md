@@ -1,5 +1,6 @@
 # left-shift
 
+
 ![A DQN agent reaching the 2048 tile.](docs/2048.gif)
 
 This repository contains the code used in our project for the INF581: Advanced Topics in A.I. at École Polytechnique. We tackle the problem of training an agent to play the [game 2048](https://en.wikipedia.org/wiki/2048_(video_game)) with Reinforcement Learning. Our algorithm of choice is Deep Q-Learning (DQN).
@@ -143,5 +144,9 @@ python utils/plot_log.py PATH_TO_LOG
 python utils/plot_log.py logs/cnn_5l4_fc.npz
 ```
 
+## Authors
 
+- [Ahmed Bouhoula](https://github.com/bouhoula)
+- [Matheus Castro](https://github.com/matheuscarius)
+- [Matheus Centa](https://github.com/mmcenta)
 
