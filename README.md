@@ -1,6 +1,5 @@
 # left-shift
 
-
 ![A DQN agent reaching the 2048 tile.](docs/2048.gif)
 
 This repository contains the code used in our project for the INF581: Advanced Topics in A.I. at École Polytechnique. We tackle the problem of training an agent to play the [game 2048](https://en.wikipedia.org/wiki/2048_(video_game)) with Reinforcement Learning. Our algorithm of choice is Deep Q-Learning (DQN).
@@ -10,6 +9,7 @@ This repository contains the code used in our project for the INF581: Advanced T
 Below we detail the function of each directory:
 
 * `agents`: contains scripts to train and evaluate agents (more details on the Running subsection), as well as the necessary code implementing custom callbacks and policies;
+* `docs`: contains the GIF you saw above and the final report of the project;
 * `hyperparams`: contains YAML files detailing hyperparameters for agents (more details on the Hyperparameters subsection);
 * `models`: contains pretrained agents;
 * `utils`: contains auxiliary scripts for plotting results.
@@ -139,6 +139,7 @@ python utils/plot_log_multi.py
 ```
 python utils/plot_log.py PATH_TO_LOG
 ```
+
 #### Example:
 ```
 python utils/plot_log.py logs/cnn_5l4_fc.npz
