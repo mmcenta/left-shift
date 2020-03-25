@@ -79,6 +79,9 @@ python agents/dqn.py -mn MODEL_NAME --eval
 
 #### Complete usage:
 ```
+python agents/dqn.py -h
+```
+```
 usage: python agents/dqn.py [-h] [--env ENV] [--tensorboard-log TENSORBOARD_LOG]
               [--hyperparams-file HYPERPARAMS_FILE] [--model-name MODEL_NAME]
               [--n-timesteps N_TIMESTEPS] [--log-interval LOG_INTERVAL]
