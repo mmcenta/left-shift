@@ -1,4 +1,4 @@
-layers: [256, 64, 64]
+layers: [512, 128]
 buffer_size: 10000
 learning_rate: !!float 1e-4
 learning_starts: 10000

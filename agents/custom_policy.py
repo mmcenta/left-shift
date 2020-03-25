@@ -16,7 +16,8 @@ def cnn_extractor(image, **kwargs):
     layer_2 = activ(conv(layer_1, 'c2', n_filters=128, filter_size=3, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
     layer_3 = activ(conv(layer_2, 'c3', n_filters=256, filter_size=2, stride=2, pad='VALID', init_scale=np.sqrt(2), **kwargs))
     layer_4 = activ(conv(layer_3, 'c4', n_filters=256, filter_size=2, stride=1, pad='SAME', init_scale=np.sqrt(2), **kwargs))
-    layer_lin = conv_to_fc(layer_4)
+    layer_5 = activ(conv(layer_4, 'c5', n_filters=512, filter_size=2, stride=1, pad='VALID', init_scale=np.sqrt(2), **kwargs))
+    layer_lin = conv_to_fc(layer_5)
     return layer_lin
 
 class CustomPolicy(DQNPolicy):
