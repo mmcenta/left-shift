@@ -69,7 +69,6 @@ class CustomCallback(BaseCallback):
         timestep = self.locals['self'].num_timesteps
         num_episodes = len(self.locals['episode_rewards'])
         if num_episodes > self.num_episodes:
-            print(num_episodes)
             self.num_episodes = num_episodes
             self.histogram[self.max_val] += 1
             self.episode_maxtiles.append(self.max_val)
@@ -93,6 +92,8 @@ class CustomCallback(BaseCallback):
         pass
 
     def _dump_values(self):
+        timestep = self.locals['self'].num_timesteps
+        num_episodes = self.num_episodes
         if self.log_dir and self.log_file:
             log_path = os.path.join(self.log_dir, self.log_file)
             np.savez(log_path, rewards=self.locals['episode_rewards'], lengths=self.episode_lengths, max_tiles=self.episode_maxtiles)

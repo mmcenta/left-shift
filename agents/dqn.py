@@ -58,7 +58,6 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     :return: (BaseRLModel object) The corresponding model.
     """
     feature_extraction = "cnn" if hyperparams['cnn'] else "mlp"
-
     
 
     # Prepare kwargs for the constructor
@@ -80,7 +79,8 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
 
     return model
 
-def get_model(model_name, hyperparams, env, verbose=1, seed=0, env_kwargs={}, tensorboard_log=''):
+def get_model(model_name, hyperparams, env, verbose=1, seed=0, env_kwargs={}, tensorboard_log='', extractor=''):
+    
     if verbose > 0:
         print("Creating model.")
     save_dir = 'models'
@@ -95,7 +95,8 @@ def get_model(model_name, hyperparams, env, verbose=1, seed=0, env_kwargs={}, te
                              tensorboard_log=tensorboard_log,
                              verbose=verbose,
                              seed=seed,
-                             env_kwargs=env_kwargs)
+                             env_kwargs=env_kwargs,
+                             extractor=extractor)
 
 
 def train(model, model_name, hyperparams,
@@ -108,6 +109,7 @@ def train(model, model_name, hyperparams,
           save_freq=1e4,
           save_dir='models',
           hist_freq=100,
+          eval_episodes=100,
           env_kwargs={}):
     """
     Create (or load) and train a DQN model. The model always uses the Prioritized
@@ -221,9 +223,10 @@ if __name__ == '__main__':
         'save_freq': args.save_freq,
         'save_dir': args.save_directory,
         'hist_freq': args.hist_freq,
+        'eval_episodes': args.eval_episodes,
     }
     env_kwargs = {'one_hot': args.one_hot}
-    model = get_model(args.model_name, hyperparams, args.env, verbose=args.verbose, seed=args.seed, env_kwargs=env_kwargs, tensorboard_log = args.tensorboard_log)
+    model = get_model(args.model_name, hyperparams, args.env, verbose=args.verbose, seed=args.seed, env_kwargs=env_kwargs, tensorboard_log = args.tensorboard_log, extractor=args.extractor)
 
     if args.train:
         train(model, args.model_name, hyperparams, **train_kwargs)
