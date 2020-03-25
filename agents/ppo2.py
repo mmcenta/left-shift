@@ -76,7 +76,8 @@ def create_model(hyperparams, env="gym_text2048:Text2048-v0", tensorboard_log=''
     del model_kwargs['ln']
 
     model = PPO2(CnnPolicy,
-                Monitor(gym.make(env, **env_kwargs), None),
+                # Monitor(gym.make(env, **env_kwargs), None),
+                make_vec_env(env, 8, env_kwargs=env_kwargs),
                 policy_kwargs=policy_kwargs,
                 seed=seed,
                 tensorboard_log=tensorboard_log,
