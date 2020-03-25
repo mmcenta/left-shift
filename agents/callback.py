@@ -99,6 +99,8 @@ class CustomCallback(BaseCallback):
             log_file = log_path + '.npz'
             try:
                 os.replace(log_file, log_file+'.bkp')
+            except:
+                pass
             np.savez(log_path, rewards=self.locals['episode_rewards'], lengths=self.episode_lengths, max_tiles=self.episode_maxtiles)
             
         if self.verbose:
