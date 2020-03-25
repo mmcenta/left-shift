@@ -31,12 +31,6 @@ git clone https://github.com/mmcenta/gym-text2048
 pip install -e gym-text2048
 ```
 
-### Installing gym environment
-
-```
-pip install -e gym-text2048
-```
-
 ### Playing
 
 Interactive player for humans:
