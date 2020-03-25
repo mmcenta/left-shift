@@ -16,7 +16,7 @@ import tensorflow as tf
 import yaml
 
 from callback import CustomCallbackPPO2
-from custom_policy import CustomPolicy, cnn_5l4
+from custom_policy import cnn_5l4, cnn_custom
 
 def evaluate(model, num_episodes=100):
     """
