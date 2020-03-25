@@ -9,3 +9,4 @@ exploration_fraction: 0.1
 prioritized_replay_alpha: 0.6
 cnn: True
 ln: False
+dueling: True

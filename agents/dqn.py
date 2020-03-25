@@ -15,7 +15,7 @@ import yaml
 from callback import CustomCallback
 from custom_policy import CustomPolicy
 
-def evaluate(model, num_episodes=100):
+def evaluate(model, num_episodes=100, render=False):
     """
     Evaluate a RL agent
     :param model: (BaseRLModel object) The RL Agent.
@@ -35,6 +35,10 @@ def evaluate(model, num_episodes=100):
             if reward < 0:
                 action = random.sample(range(4),1)[0]
                 obs, reward, done, extras = env.step(action)
+            if render:
+                pass
+                # time.sleep(.1)
+        env.render()
         hist[env.maximum_tile()] += 1
         all_episode_rewards.append(extras['score'])
 
@@ -217,13 +221,22 @@ if __name__ == '__main__':
                         help='Verbose mode (0: no output, 1: INFO).')
     parser.add_argument('--no-one-hot', dest='one_hot', action='store_false',
                         help='Disable one-hot encoding')
-    parser.add_argument('--no-train', dest='train', action='store_false',
-                        help='Disable training')
+    parser.add_argument('--train', dest='train', action='store_true',
+                        help='Enable training')
     parser.add_argument('--eval', dest='eval', action='store_true',
                         help='Enable evaluation')
     parser.add_argument('--extractor', type=str, default='',
                         help='Change extractor')
+    parser.add_argument('--demo', action='store_true',
+                        help='Enable rendering and runs for')
     args = parser.parse_args()
+
+    # Demo mode
+    if args.demo:
+        args.model_name = 'cnn_5l_4_v2'
+        args.train = False
+        args.eval = True
+        args.eval_episodes = 1
 
     # Load hyperparameters
     if args.verbose > 0:
@@ -246,7 +259,7 @@ if __name__ == '__main__':
     }
 
     # Gather env kwargs
-    env_kwargs = {'one_hot': args.one_hot}
+    env_kwargs = {'one_hot': args.one_hot, 'seed': args.seed}
 
     # Get model (load if available, create otherwise)
     model = get_model(args.model_name, args.save_directory, args.env,
@@ -261,4 +274,4 @@ if __name__ == '__main__':
     if args.train:
         train(model, args.model_name, hyperparams, **train_kwargs)
     if args.eval:
-        evaluate(model, args.eval_episodes)
+        evaluate(model, args.eval_episodes, args.demo)
