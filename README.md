@@ -2,7 +2,9 @@
 
 ![A DQN agent reaching the 2048 tile.](docs/2048.gif)
 
-This repository contains the code used in our project for the INF581: Advanced Topics in A.I. at École Polytechnique. We tackle the problem of training an agent to play the [game 2048](https://en.wikipedia.org/wiki/2048_(video_game)) with Reinforcement Learning. Our algorithm of choice is Deep Q-Learning (DQN).
+This repository contains the code used in our project for the INF581: Advanced Topics in A.I. at École Polytechnique. 
+
+In this project, we aim at training a game-playing agent for the 2048 game. We implement an [OpenAI Gym environment](https://github.com) to model the game and use the Deep Q-Learning (DQN) algorithm from the Stable Baseline library to train multiple agents varying the states encoding, reward function, network type and structure. Results show that encoding states using one-hot encoding is crucial for better performance. We have also concluded that Convolutional Neural Networks (CNN) are more efficient than Multilayer Perceptrons (MLP) for the purpose of this game.
 
 ## Project Structure
 
