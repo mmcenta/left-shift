@@ -54,7 +54,7 @@ python agents/random_agent.py
 python agents/dqn.py --r2048
 ```
 
-#### To demo the pretrained models:
+#### To demo pretrained models:
 ```
 python agents/dqn.py -mn MODEL_NAME --demo
 ```
@@ -70,12 +70,12 @@ If the model has `_nohot`, you have to launch it with the `--no-one-hot` flag.
 python agents/dqn.py -mn cnn_5l_4_v2_nohot --no-one-hot --demo
 ```
 
-#### To launch a training:
+#### To train:
 ```
 python agents/dqn.py -mn MODEL_NAME --train
 ```
 
-#### To launch a evaluation:
+#### To evaluate:
 ```
 python agents/dqn.py -mn MODEL_NAME --eval
 ```
