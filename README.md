@@ -30,7 +30,7 @@ A quick way to install them is to run the following command:
 `pip install -r [requirements.txt|requirements-gpu.txt]`,
 choosing the appropriate file depending on whether you wish to run the models on a CPU or a GPU.
 
-To install the envronment, execute the following commands:
+To install the environment, execute the following commands:
 ```
 git clone https://github.com/mmcenta/gym-text2048
 pip install -e gym-text2048
