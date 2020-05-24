@@ -6,6 +6,8 @@ This repository contains the code used in our project for the INF581: Advanced T
 
 In this project, we aim at training a game-playing agent for the 2048 game. We implement an [OpenAI Gym environment](https://github.com) to model the game and use the Deep Q-Learning (DQN) algorithm from the Stable Baseline library to train multiple agents varying the states encoding, reward function, network type and structure. Results show that encoding states using one-hot encoding is crucial for better performance. We have also concluded that Convolutional Neural Networks (CNN) are more efficient than Multilayer Perceptrons (MLP) for the purpose of this game.
 
+For a more in-depth discussion, give [our report](./docs/report.pdf) a read.
+
 ## Project Structure
 
 Below we detail the function of each directory:
